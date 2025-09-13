@@ -1,0 +1,243 @@
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  joinDate: string;
+  status: 'active' | 'inactive';
+  totalContributions: number;
+  balance: number;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  email: string;
+  createdAt?: any;
+};
+
+
+export interface Account {
+  id: string;
+  created_at: string;
+  customer_id: string;
+  account_type: string;
+  balance: Number;
+  company_id: string;
+  created_by: string;
+}
+
+export interface Customer {
+  id?: string;
+  name: string;
+  email: string;
+  phone_number: string;
+  address: string;
+  registered_by_name?: string;
+  created_at: string; 
+  location: string;
+  daily_rate: string;
+  total_balance: string;
+  total_transactions: string;
+  id_card?: string; 
+  next_of_kin?: string;
+  date_of_registration?: string; 
+  date_of_birth?: string;
+  gender?: string; 
+  area?: string;
+  city?: string;
+  company_id?: string;
+  registered_by: string;
+}
+
+export interface Transaction {
+  id?: string;
+  account_id: string;
+  amount: number;
+  transaction_type: string;
+  description?: string;
+  transaction_date?: string;
+  staked_by: string;
+  company_id: string;
+  status: string;
+  unique_code: string;
+}
+
+export interface Contribution {
+  id: string;
+  clientId: string;
+  clientName: string;
+  amount: number;
+  date: string;
+  method: 'cash' | 'bank_transfer' | 'mobile_money';
+  status: 'completed' | 'pending' | 'failed';
+  notes?: string;
+}
+
+export interface Withdrawal {
+  id: string;
+  clientId: string;
+  clientName: string;
+  amount: number;
+  requestDate: string;
+  approvalDate?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  reason: string;
+  approvedBy?: string;
+}
+
+export interface StaffLite {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+};
+
+export interface LastMessage {
+  text?: string;
+  type: 'text' | 'image' | 'file';
+  senderId: string;
+  createdAt: any; // Timestamp
+};
+
+export interface Conversation {
+  id: string;
+  participants: string[];
+  participantProfiles: Record<string, StaffLite>;
+  unread: Record<string, number>;
+  typing: Record<string, boolean>;
+  lastMessage?: LastMessage;
+  updatedAt: any; // Timestamp
+};
+
+export interface Message {
+  id: string;
+  text?: string;
+  type: 'text' | 'image' | 'file';
+  senderId: string;
+  createdAt: any; // Timestamp
+  readBy?: Record<string, any>; // map of staffId -> timestamp
+  storagePath?: string;
+  downloadURL?: string;
+};
+
+
+export const mockClients: Client[] = [
+  {
+    id: '1',
+    name: 'Alice Johnson',
+    email: 'alice@email.com',
+    phone: '+233 24 123 4567',
+    address: '123 Main St, Accra',
+    joinDate: '2024-01-15',
+    status: 'active',
+    totalContributions: 2500.00,
+    balance: 2500.00
+  },
+  {
+    id: '2',
+    name: 'Bob Smith',
+    email: 'bob@email.com',
+    phone: '+233 24 234 5678',
+    address: '456 Oak Ave, Kumasi',
+    joinDate: '2024-02-01',
+    status: 'active',
+    totalContributions: 1800.00,
+    balance: 1600.00
+  },
+  {
+    id: '3',
+    name: 'Carol Williams',
+    email: 'carol@email.com',
+    phone: '+233 24 345 6789',
+    address: '789 Pine St, Tamale',
+    joinDate: '2024-01-20',
+    status: 'active',
+    totalContributions: 3200.00,
+    balance: 3200.00
+  },
+  {
+    id: '4',
+    name: 'David Brown',
+    email: 'david@email.com',
+    phone: '+233 24 456 7890',
+    address: '321 Elm St, Cape Coast',
+    joinDate: '2024-03-01',
+    status: 'inactive',
+    totalContributions: 1200.00,
+    balance: 800.00
+  }
+];
+
+export const mockContributions: Contribution[] = [
+  {
+    id: '1',
+    clientId: '1',
+    clientName: 'Alice Johnson',
+    amount: 500.00,
+    date: '2024-12-01',
+    method: 'mobile_money',
+    status: 'completed',
+    notes: 'Monthly contribution'
+  },
+  {
+    id: '2',
+    clientId: '2',
+    clientName: 'Bob Smith',
+    amount: 300.00,
+    date: '2024-12-01',
+    method: 'cash',
+    status: 'completed'
+  },
+  {
+    id: '3',
+    clientId: '3',
+    clientName: 'Carol Williams',
+    amount: 800.00,
+    date: '2024-12-02',
+    method: 'bank_transfer',
+    status: 'pending',
+    notes: 'Bulk payment for Q4'
+  },
+  {
+    id: '4',
+    clientId: '1',
+    clientName: 'Alice Johnson',
+    amount: 500.00,
+    date: '2024-11-01',
+    method: 'mobile_money',
+    status: 'completed'
+  }
+];
+
+export const mockWithdrawals: Withdrawal[] = [
+  {
+    id: '1',
+    clientId: '2',
+    clientName: 'Bob Smith',
+    amount: 200.00,
+    requestDate: '2024-11-15',
+    approvalDate: '2024-11-16',
+    status: 'completed',
+    reason: 'Emergency medical expenses',
+    approvedBy: 'John Doe'
+  },
+  {
+    id: '2',
+    clientId: '4',
+    clientName: 'David Brown',
+    amount: 400.00,
+    requestDate: '2024-11-20',
+    status: 'pending',
+    reason: 'Business investment'
+  },
+  {
+    id: '3',
+    clientId: '1',
+    clientName: 'Alice Johnson',
+    amount: 1000.00,
+    requestDate: '2024-12-01',
+    status: 'pending',
+    reason: 'Home renovation'
+  }
+];
