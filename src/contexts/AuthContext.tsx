@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedCompany = localStorage.getItem('susupro_company');
+    const storedCompany = sessionStorage.getItem('susupro_company');
     if (storedCompany) {
       setCompany(JSON.parse(storedCompany));
     }
@@ -63,8 +63,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Store company and token
         setCompany(companyData);
-        localStorage.setItem('susupro_company', JSON.stringify(companyData));
-        localStorage.setItem('susupro_token', token);
+        sessionStorage.setItem('susupro_company', JSON.stringify(companyData));
+        sessionStorage.setItem('susupro_token', token);
 
         if (companyData.two_factor_enabled) {
           // If 2FA is enabled, return the company data
