@@ -63,8 +63,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Store company and token
         setCompany(companyData);
-        sessionStorage.setItem('susupro_company', JSON.stringify(companyData));
-        sessionStorage.setItem('susupro_token', token);
+        localStorage.setItem('susupro_company', JSON.stringify(companyData));
+        localStorage.setItem('susupro_token', token);
 
         if (companyData.two_factor_enabled) {
           // If 2FA is enabled, return the company data
