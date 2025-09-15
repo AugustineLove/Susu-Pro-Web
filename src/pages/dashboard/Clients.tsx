@@ -12,7 +12,7 @@ const Clients: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false); 
   const [editingClient, setEditingClient] = useState<Customer | null>(null);
   const {stats} = useStats();
-  const { customers, loading, addCustomer, refreshCustomers, deleteCustomer } = useCustomers(); // ✅ correct
+  const { customers, loading, addCustomer, refreshCustomers, deleteCustomer } = useCustomers();
   const uniqueLocations = Array.from(new Set(customers.map(c => c.location)));
 
 
@@ -20,10 +20,11 @@ const Clients: React.FC = () => {
   const name = customer.name?.toLowerCase() || '';
   const email = customer.email?.toLowerCase() || '';
   const phone = customer.phone_number || '';
+  const account = customer.account_number || '';
 
   const matchesSearch =
     name.includes(searchTerm.toLowerCase()) ||
-    email.includes(searchTerm.toLowerCase()) ||
+    email.includes(searchTerm.toLowerCase()) || account.includes(searchTerm) ||
     phone.includes(searchTerm);
 
   const matchesLocation =
@@ -223,7 +224,7 @@ const Clients: React.FC = () => {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                        <div className="text-sm text-gray-500">{customer.address}</div>
+                        <div className="text-sm text-gray-500">{customer.account_number}</div>
                       </div>
                     </div>
                   </td>
