@@ -42,6 +42,7 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
     name: client?.name || '',
     email: client?.email || '',
     phone_number: client?.phone_number || '',
+    account_number: client?.account_number || '',
     city: client?.city || '',
     id_card: client?.id_card || '',
     gender: client?.gender || '',
@@ -293,6 +294,16 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
                   Financial Information
                 </h4>
               </div>
+
+               <FormField
+                label="Account Number"
+                name="account_number"
+                value={formData.account_number}
+                onChange={handleChange}
+                required
+                error={errors.account_number}
+                icon={<Phone className="w-4 h-4" />}
+              />
 
               <FormField
                 label="Daily Rate"
