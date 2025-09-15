@@ -5,7 +5,7 @@ import { data } from "react-router-dom";
 
 export const saveCompanyToken = async (companyId: string) => {
   try {
-    const token = await getToken(messaging, { vapidKey: "BCNYR_QO_LVM8XN9Z2mrtT1XIT1TRJHxnizpWIxNX8XfGyvOepK6gPq16S1GRramyQhMvg4B7DG30TvwyqbQmOM" });
+    const token = await getToken(messaging, { vapidKey: "BKSnq2x_Ygszk1NWyUE5y_ExVBpdVXqBj6Y53My-y6gVFxKi2ffQEDtDb_5yPRn-picvti61VtJ9y_AyW1rt6JI" });
     if (token) {
       const tokenRef = doc(db, "companies", companyId, "tokens", token);
       await setDoc(tokenRef, {
@@ -22,7 +22,7 @@ export const saveCompanyToken = async (companyId: string) => {
 
 export const sendMessageToStaff = async (companyId: string, staffId: string, title: string, body: string, data: any) => {
    try {
-        await fetch("http://127.0.0.1:5000/api/messages/send-staff-notification", {
+        await fetch("https://susu-pro-backend.onrender.com/api/messages/send-staff-notification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
