@@ -33,6 +33,7 @@ export interface Customer {
   name: string;
   email: string;
   phone_number: string;
+  account_number: string;
   address: string;
   registered_by_name?: string;
   created_at: string; 
