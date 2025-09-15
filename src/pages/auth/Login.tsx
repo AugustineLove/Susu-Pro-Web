@@ -33,7 +33,7 @@ const saveCompany = async (company: Company) => {
     name: company.name,
     email: company.email,
     createdAt: serverTimestamp(),
-  }, { merge: true }); // merge keeps old data if doc already exists
+  }, { merge: true });
 }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,22 +42,24 @@ const saveCompany = async (company: Company) => {
   
   const response = await login(formData.email, formData.password);
   console.log(`Response from login: ${JSON.stringify(response)}`);
+  const companyJSON = localStorage.getItem('susupro_company');
+      const company = companyJSON ? JSON.parse(companyJSON) : null;
   if (response) {
     if (response.requires2FA) {
       await saveCompany({
-          id: companyId,
-          name: companyName,
+          id: company.id,
+          name: company.companyName,
           email: formData.email,
         });
-      await saveCompanyToken(companyId);
+      await saveCompanyToken(company.id);
       navigate('/two-factor', { state: { companyId: response.companyId } });
     } else {
       await saveCompany({
-          id: companyId,
-          name: companyName,
+          id: company.id,
+          name: company.companyName,
           email: formData.email,
         });
-      await saveCompanyToken(companyId);
+      await saveCompanyToken(company.id);
       navigate('/dashboard');
     }
   } else {
