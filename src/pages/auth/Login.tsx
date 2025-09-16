@@ -42,7 +42,7 @@ const saveCompany = async (company: Company) => {
   
   const response = await login(formData.email, formData.password);
   console.log(`Response from login: ${JSON.stringify(response)}`);
-  const companyJSON = sessionStorage.getItem('susupro_company');
+  const companyJSON = localStorage.getItem('susupro_company');
       const company = companyJSON ? JSON.parse(companyJSON) : null;
   if (response) {
     if (response.requires2FA) {
