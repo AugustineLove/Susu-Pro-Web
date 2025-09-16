@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedCompany = sessionStorage.getItem('susupro_company');
+    const storedCompany = localStorage.getItem('susupro_company');
     if (storedCompany) {
       setCompany(JSON.parse(storedCompany));
     }
