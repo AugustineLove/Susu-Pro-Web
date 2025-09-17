@@ -27,7 +27,7 @@ const Overview: React.FC = () => {
     {
       title: 'Total Customers',
       value: stats?.totalCustomers,
-      subtitle: `${3} active`,
+      subtitle: `All company customers`,
       icon: Users,
       color: 'indigo',
       change: '+12%'
