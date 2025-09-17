@@ -89,7 +89,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
     staked_by: transaction?.staked_by || ''
   });
 
-  const [customerSearch, setCustomerSearch] = useState('');
+  const [customerSearch,  setCustomerSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -217,7 +217,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
       status: status,
     };
     console.log('Submitting transaction:', transactionData);
-    addTransaction(transactionData, {"messageTo": selectedCustomer?.phone_number, "message":`Hello ${selectedCustomer?.name} you have requested a withdrawal of GHS${formData.amount}.00.`, "messageFrom": makeSuSuProName(companyName)});
+    addTransaction(transactionData);
     onClose();
     refreshTransactions();
     refreshCustomers();
@@ -234,24 +234,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
     }
   };
 
-  const makeSuSuProName = (companyName: string) => {
-  if (!companyName || typeof companyName !== 'string') return 'SuSuPro';
-
-  // Get words (handles extra spaces, punctuation, hyphens)
-  const words = companyName
-    .trim()
-    .split(/[\s\-_.]+/g)                // split on space, hyphen, underscore, dot
-    .filter(Boolean);
-
-  // Collect initials (letters only), uppercase
-  const initials = words
-    .map(w => (w.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/)?.[0] || '')) // first letter (incl. accents)
-    .join('')
-    .toUpperCase();
-
-  return `${initials}SuSuPro`;
-}
-
+  
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50 p-4"
