@@ -4,6 +4,7 @@ import { mockWithdrawals, Withdrawal } from '../../data/mockData';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
 import { useTransactions } from '../../contexts/dashboard/Transactions';
 import { toast } from 'react-hot-toast';
+import { companyName } from '../../constants/appConstants';
 
 const Withdrawals: React.FC = () => {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>(mockWithdrawals);
@@ -41,14 +42,33 @@ const approvedWithdrawalsThisMonth = transactions.filter(w => {
   );
 });
 
-  const handleApproveClick = async (withdrawaId: string) => {
+const makeSuSuProName = (companyName: string) => {
+  if (!companyName || typeof companyName !== 'string') return 'SuSuPro';
+
+  // Get words (handles extra spaces, punctuation, hyphens)
+  const words = companyName
+    .trim()
+    .split(/[\s\-_.]+/g)                // split on space, hyphen, underscore, dot
+    .filter(Boolean);
+
+  // Collect initials (letters only), uppercase
+  const initials = words
+    .map(w => (w.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/)?.[0] || '')) // first letter (incl. accents)
+    .join('')
+    .toUpperCase();
+
+  return `${initials}SuSu`;
+}
+
+
+  const handleApproveClick = async (withdrawaId: string, customerPhone: string, customerName: string, withdrawalAmount: string) => {
     if (isApproving) return;
 
     setIsApproving(true);
     const toastId = toast.loading('Approving transaction...');
     console.log(`Toast Id: ${toastId}`);
     try {
-      const approvalSuccess = await approveTransaction(withdrawaId);
+      const approvalSuccess = await approveTransaction(withdrawaId, {"messageTo": customerPhone, "message":`Hello ${customerName} you have withdrawn an amount of GHS${withdrawalAmount}.00.`, "messageFrom": makeSuSuProName(companyName)});
       console.log(`Approval status ${approvalSuccess}`)
       if(approvalSuccess){
         toast.success('Transaction approved successfully!', { id: toastId });
@@ -268,7 +288,7 @@ const approvedWithdrawalsThisMonth = transactions.filter(w => {
                     {withdrawal.status === 'pending' ? (
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleApproveClick(withdrawal.transaction_id)}
+                          onClick={() => handleApproveClick(withdrawal.transaction_id, withdrawal.customer_phone, withdrawal.customer_name, withdrawal.amount.toLocaleString())}
                           className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
                         >
                           Approve
