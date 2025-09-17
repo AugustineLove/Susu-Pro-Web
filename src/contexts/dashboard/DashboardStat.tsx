@@ -5,6 +5,7 @@ interface Stats {
   totalCustomers: number;
   totalTransactions: number;
   totalBalance: number;
+  totalCommissions: number;
 }
 
 interface StatsContextType {
