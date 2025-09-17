@@ -102,11 +102,11 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
   const mobileBankers = staffList.filter(staff => staff.role === 'Mobile Banker' || staff.role === 'mobile banker');
 
   // Filter customers based on search
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-    customer.phone_number.includes(customerSearch) ||
-    customer.email.toLowerCase().includes(customerSearch.toLowerCase())
-  );
+const filteredCustomers = customers.filter(customer =>
+  (customer.name || "").toLowerCase().includes(customerSearch.toLowerCase()) ||
+  (customer.phone_number || "").toLowerCase().includes(customerSearch.toLowerCase()) ||
+  (customer.email || "").toLowerCase().includes(customerSearch.toLowerCase())
+);
 
   // Set initial customer and account if editing
   useEffect(() => {
