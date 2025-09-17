@@ -11,6 +11,7 @@ export type TransactionType = {
   transaction_date: string;
   account_number: string;
   customer_name: string;
+  customer_phone: string;
   staff_name: string;
   status: string;
   unique_code: string;
@@ -20,8 +21,8 @@ type TransactionContextType = {
   transactions: TransactionType[];
   loading: boolean;
   refreshTransactions: () => Promise<void>;
-  addTransaction: (newTransaction: Omit<Transaction, 'id' | 'created_at'>, messageData: {}) => Promise<void>;
-  approveTransaction: (transactionId: string) => Promise<boolean>;
+  addTransaction: (newTransaction: Omit<Transaction, 'id' | 'created_at'>) => Promise<void>;
+  approveTransaction: (transactionId: string, messageData: {}) => Promise<boolean>;
   rejectTransaction: (transactionId: string) => Promise<void>;
 };
 
@@ -51,7 +52,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       if (json.status === 'success') {
         setTransactions(json.data);
-        console.log(json.data);
+        console.log(`Fetched transactions: ${json.data}`);
         } else {
         console.error('Failed to fetch transactions:', json.message);
       }
@@ -62,7 +63,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const addTransaction = async (newTransaction: Omit<Transaction, 'id' | 'created_at'>, messageData: {}) =>{
+  const addTransaction = async (newTransaction: Omit<Transaction, 'id' | 'created_at'>) =>{
     try {
       const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/stake`, {
         method: 'POST',
@@ -75,7 +76,6 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       if (json.status === 'success') {
         await fetchTransactions();
-        await sendMessage(messageData);
         await refreshCustomers();
         await refreshStats();
       }
@@ -93,7 +93,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const sendMessage = async (messageData: {}) => {
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/messages/send-customer', {
+      const res = await fetch('https://susu-pro-backend.onrender.com/api/messages/send-customer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }
 
-  const approveTransaction = async (transactionId: string) => {
+  const approveTransaction = async (transactionId: string, messageData: {}) => {
   try {
     setLoading(true);
     const res = await fetch(
@@ -129,6 +129,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (json.status === 'success') {
       await fetchTransactions();
       await refreshCustomers();
+      
+        await sendMessage(messageData);
       await refreshStats();
       console.log('Transaction approved:', json);
       return true;
