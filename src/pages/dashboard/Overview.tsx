@@ -34,7 +34,7 @@ const Overview: React.FC = () => {
     },
     {
       title: 'Total Commissions',
-      value: stats?.totalCommissions,
+      value: `₵${stats?.totalCommissions}`,
       subtitle: 'This month',
       icon: PiggyBank,
       color: 'green',
@@ -42,7 +42,7 @@ const Overview: React.FC = () => {
     },
     {
       title: 'Total Balance',
-      value: stats?.totalBalance,
+      value: `₵${stats?.totalBalance}`,
       subtitle: 'Available funds',
       icon: TrendingUp,
       color: 'blue',
