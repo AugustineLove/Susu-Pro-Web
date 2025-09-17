@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Search, Plus, Calendar, Filter, Download, PiggyBank, Eye } from 'lucide-react';
-import { mockContributions, mockClients, Contribution } from '../../data/mockData';
+import { mockContributions, mockClients, Contribution, Transaction } from '../../data/mockData';
 import { useTransactions } from '../../contexts/dashboard/Transactions';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
+import { TransactionModal } from './Components/transactionModal';
 
 const Contributions: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,6 +11,8 @@ const Contributions: React.FC = () => {
   const [methodFilter, setMethodFilter] = useState('all');
   const [dateRange, setDateRange] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const { transactions } = useTransactions();
   const { stats } = useStats();
   // Filter contributions
@@ -63,6 +66,27 @@ const Contributions: React.FC = () => {
     // setTransactions([...transactions, contribution]);
     setShowAddModal(false);
   };
+
+  const handleAddTransaction = (newTransaction: Omit<Transaction, 'id'>) => {
+      const companyJSON = localStorage.getItem('susupro_company');
+        const company = companyJSON ? JSON.parse(companyJSON) : null;
+        const companyId = company?.id;
+  
+        const transaction: Transaction = {
+          ...newTransaction,
+          company_id: companyId,
+        };
+        console.log('Adding new transaction:', transaction);
+        
+        setShowAddModal(false);
+        setShowTransactionModal(false);
+        setEditingTransaction(null);
+      };
+  
+      const handleEditTransaction = (updatedTransaction: Transaction) => {
+        
+        setEditingTransaction(null);
+      };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -291,157 +315,18 @@ const Contributions: React.FC = () => {
 
       {/* Add Contribution Modal */}
       {showAddModal && (
-        <ContributionModal
-          clients={mockClients}
-          onSave={handleAddContribution}
-          onClose={() => setShowAddModal(false)}
+        <TransactionModal
+          transaction={editingTransaction}
+          onSave={editingTransaction ? handleEditTransaction : handleAddTransaction}
+          onClose={() => {
+            setShowTransactionModal(false);
+            setEditingTransaction(null);
+          }}
         />
       )}
     </div>
   );
 };
 
-// Contribution Modal Component
-interface ContributionModalProps {
-  clients: any[];
-  onSave: (contribution: any) => void;
-  onClose: () => void;
-}
-
-const ContributionModal: React.FC<ContributionModalProps> = ({ clients, onSave, onClose }) => {
-  const [formData, setFormData] = useState({
-    clientId: '',
-    clientName: '',
-    amount: '',
-    date: new Date().toISOString().split('T')[0],
-    method: 'cash' as 'cash' | 'bank_transfer' | 'mobile_money',
-    status: 'completed' as 'completed' | 'pending' | 'failed',
-    notes: ''
-  });
-
-  const handleClientChange = (clientId: string) => {
-    const client = clients.find(c => c.id === clientId);
-    setFormData({
-      ...formData,
-      clientId,
-      clientName: client ? client.name : ''
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({
-      ...formData,
-      amount: parseFloat(formData.amount)
-    });
-  };
-
-  return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Log New Contribution</h3>
-        </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Client *
-            </label>
-            <select
-              value={formData.clientId}
-              onChange={(e) => handleClientChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              required
-            >
-              <option value="">Select a client</option>
-              {clients.map(client => (
-                <option key={client.id} value={client.id}>{client.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Amount (₵) *
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date *
-            </label>
-            <input
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Method *
-            </label>
-            <select
-              value={formData.method}
-              onChange={(e) => setFormData({ ...formData, method: e.target.value as any })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="cash">Cash</option>
-              <option value="bank_transfer">Bank Transfer</option>
-              <option value="mobile_money">Mobile Money</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="completed">Completed</option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes
-            </label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              rows={3}
-            />
-          </div>
-          <div className="flex space-x-4 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-            >
-              Log Contribution
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
 
 export default Contributions;
