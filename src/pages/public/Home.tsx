@@ -66,7 +66,7 @@ const Home: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-indigo-200">Total Balance</span>
-                    <span className="text-2xl font-bold">₵45,230</span>
+                    <span className="text-2xl font-bold">$45,230</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-indigo-200">Active Clients</span>
@@ -180,7 +180,7 @@ const Home: React.FC = () => {
                         <div className="text-xs text-gray-500">Contribution received</div>
                       </div>
                     </div>
-                    <span className="text-sm font-semibold text-green-600">+₵500</span>
+                    <span className="text-sm font-semibold text-green-600">+$500</span>
                   </div>
                   <div className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-3">
@@ -192,7 +192,7 @@ const Home: React.FC = () => {
                         <div className="text-xs text-gray-500">Withdrawal approved</div>
                       </div>
                     </div>
-                    <span className="text-sm font-semibold text-orange-600">-₵200</span>
+                    <span className="text-sm font-semibold text-orange-600">-$200</span>
                   </div>
                 </div>
               </div>

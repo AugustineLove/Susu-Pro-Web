@@ -19,8 +19,8 @@ const Reports = () => {
   const activeClients = customers.filter(c => c.company_id === companyId).length;
   const contributions = transactions.filter(t =>  t.status === 'completed' || t.status ==='approved');
   const withdrawals = transactions.filter(t => t.type === 'withdrawal' && t.status === 'completed');
-  const totalContributions = contributions.reduce((sum, t) => sum + Number(t.amount), 0);
-  const totalWithdrawals = withdrawals.reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalContributions = contributions.reduce((sum, t) => Number(sum) + Number(t.amount), 0);
+  const totalWithdrawals = withdrawals.reduce((sum, t) => Number(sum) + Number(t.amount), 0);
   const totalBalance = stats?.totalBalance || totalContributions - totalWithdrawals;
 
   const reportTypes = [
@@ -132,9 +132,9 @@ const Reports = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { label: 'Total Clients', value: totalClients, detail: `${activeClients} active`, icon: Users, color: 'indigo', bg: 'indigo-100' },
-          { label: 'Total Contributions', value: `₵${totalContributions.toLocaleString()}`, detail: '↑ Growth', icon: PiggyBank, color: 'green', bg: 'green-100' },
-          { label: 'Current Balance', value: `₵${totalBalance.toLocaleString()}`, detail: 'Available', icon: TrendingUp, color: 'blue', bg: 'blue-100' },
-          { label: 'Total Withdrawals', value: `₵${totalWithdrawals.toLocaleString()}`, detail: 'Completed', icon: Download, color: 'orange', bg: 'orange-100' }
+          { label: 'Total Contributions', value: `${totalContributions.toLocaleString()}`, detail: '↑ Growth', icon: PiggyBank, color: 'green', bg: 'green-100' },
+          { label: 'Current Balance', value: `${totalBalance.toLocaleString()}`, detail: 'Available', icon: TrendingUp, color: 'blue', bg: 'blue-100' },
+          { label: 'Total Withdrawals', value: `${totalWithdrawals.toLocaleString()}`, detail: 'Completed', icon: Download, color: 'orange', bg: 'orange-100' }
         ].map((metric, idx) => (
           <div key={idx} className="bg-white rounded-xl shadow-sm border p-6">
             <div className="flex items-center justify-between">
@@ -181,7 +181,7 @@ const Reports = () => {
                 <div className="bg-gradient-to-r from-indigo-600 to-teal-600 h-4 rounded-full transition-all duration-1000"
                      style={{ width: `${(data.amount / maxAmount) * 100}%` }}></div>
               </div>
-              <div className="w-20 text-sm font-medium text-gray-900 text-right">₵{data.amount.toLocaleString()}</div>
+              <div className="w-20 text-sm font-medium text-gray-900 text-right">¢{data.amount.toLocaleString()}</div>
             </div>
           ))}
         </div>
@@ -206,7 +206,7 @@ const Reports = () => {
                     </div>
                     <div className="text-sm font-medium text-gray-900">{client.name || 'Unknown'}</div>
                   </div>
-                  <div className="text-sm font-semibold">₵{(client.total_balance_across_all_accounts || 0).toLocaleString()}</div>
+                  <div className="text-sm font-semibold">¢{(client.total_balance_across_all_accounts || 0).toLocaleString()}</div>
                 </div>
               ))}
           </div>

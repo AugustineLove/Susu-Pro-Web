@@ -80,7 +80,7 @@ const AllTransactions = () => {
                 >
                   <td className="p-4 font-medium text-gray-900">{tx.customer_name}</td>
                   <td className="p-4 font-semibold text-gray-800">
-                    ₵{Number(tx.amount).toLocaleString()}
+                    ${Number(tx.amount).toLocaleString()}
                   </td>
                   <td className="p-4">
                     <span

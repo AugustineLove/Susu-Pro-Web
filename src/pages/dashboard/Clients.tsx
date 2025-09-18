@@ -120,7 +120,7 @@ const Clients: React.FC = () => {
             <div>
               <p className="text-sm text-gray-600">Total Balance</p>
               <p className="text-2xl font-bold text-blue-600">
-                ₵{stats?.totalBalance.toFixed(2)}
+                ¢{stats?.totalBalance.toFixed(2)}
               </p>
             </div>
             <div className="bg-blue-100 p-3 rounded-lg">
@@ -133,7 +133,7 @@ const Clients: React.FC = () => {
             <div>
               <p className="text-sm text-gray-600">Avg. Contribution</p>
               <p className="text-2xl font-bold text-teal-600">
-                ₵{(clients.reduce((sum, c) => sum + 0, 0) / clients.length).toFixed(0)}
+                ¢{(clients.reduce((sum, c) => sum + 0, 0) / clients.length).toFixed(0)}
               </p>
             </div>
             <div className="bg-teal-100 p-3 rounded-lg">
@@ -235,7 +235,7 @@ const Clients: React.FC = () => {
                   
                   
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ₵{customer.total_balance_across_all_accounts}
+                    ¢{customer.total_balance_across_all_accounts}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-sm rounded-full `}>

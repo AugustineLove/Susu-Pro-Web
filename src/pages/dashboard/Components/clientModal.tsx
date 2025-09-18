@@ -35,9 +35,9 @@ interface ClientModalProps {
 
 export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSave, onClose }) => {
   const { staffList, loading: staffLoading } = useStaff();
-  const { customers, addCustomer } = useCustomers();
+  const { customers, addCustomer, loading } = useCustomers();
   const { company } = useAuth();
-  
+  const [startedAdding, setStartedAdding] = useState(false);
   const [formData, setFormData] = useState({
     name: client?.name || '',
     email: client?.email || '',
@@ -89,9 +89,10 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    setStartedAdding(true);
     e.preventDefault();
     console.log('Button clicked')
-    if (!validateForm()) return;
+    if (!validateForm()) setStartedAdding(false);
     console.log('Form validated')
     if (!client) {
     const companyJSON = localStorage.getItem('susupro_company');
@@ -111,6 +112,7 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
       console.log('Updating client:', data);
       console.log('Add account', addAccount);
       await addCustomer(data, formData.account_type);
+      setStartedAdding(false);
       window.location.reload();
       onClose();
     } else {
@@ -119,6 +121,7 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
         id: Date.now().toString(),
         joinDate: new Date().toISOString().split('T')[0]
       });
+      setStartedAdding(false);
     }
   };
 
@@ -409,7 +412,17 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
               onClick={handleSubmit}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg"
             >
-              {client ? 'Update Client' : 'Add Client'}
+              {client 
+                  ? 'Update Client' 
+                  : loading || startedAdding ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Adding client...
+                      </div>
+                    ) : (
+                      'Add Client'
+                    )
+                }
             </button>
           </div>
         </div>

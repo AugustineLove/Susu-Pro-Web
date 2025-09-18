@@ -31,6 +31,8 @@ import TwoFactorPage from './pages/auth/TwoFactor';
 import { Toaster } from 'react-hot-toast';
 import ChatList from './pages/dashboard/ChatList';
 import Chat from './pages/dashboard/ChatList';
+import FinancialDashboard from './pages/dashboard/Finance';
+import { FinanceProvider } from './contexts/dashboard/Finance';
 
 function App() {
   return (
@@ -60,7 +62,9 @@ function App() {
                   <TransactionProvider>
                     <StaffProvider>
                       <AccountsProvider>
-                        <DashboardLayout />
+                        <FinanceProvider>
+                          <DashboardLayout />
+                        </FinanceProvider>
                       </AccountsProvider>
                     </StaffProvider>
                   </TransactionProvider>
@@ -75,6 +79,7 @@ function App() {
             <Route path="withdrawals" element={<Withdrawals />} />
             <Route path="reports" element={<Reports />} />
             <Route path="chat" element={<Chat />} />
+            <Route path="expenses" element={<FinancialDashboard />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

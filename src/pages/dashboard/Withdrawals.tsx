@@ -67,21 +67,25 @@ const makeSuSuProName = (companyName: string) => {
     setIsApproving(true);
     const toastId = toast.loading('Approving transaction...');
     console.log(`Toast Id: ${toastId}`);
-    try {
-      const approvalSuccess = await approveTransaction(withdrawaId, {"messageTo": customerPhone, "message":`Hello ${customerName} you have withdrawn an amount of GHS${withdrawalAmount}.00.`, "messageFrom": makeSuSuProName(companyName)});
-      console.log(`Approval status ${approvalSuccess}`)
-      if(approvalSuccess){
-        toast.success('Transaction approved successfully!', { id: toastId });
-      } else{
-        toast.error('Failed to approve transaction.', { id: toastId });
-      }
+   try {
+  const approvalSuccess = await approveTransaction(withdrawaId, {
+    messageTo: customerPhone,
+    message: `Hello ${customerName} you have withdrawn an amount of GHS${withdrawalAmount}.00.`,
+    messageFrom: makeSuSuProName(companyName),
+  });
 
-    } catch (error) {
-      console.error("Approval Failed:", error);
-      toast.error('Failed to approve transaction.', { id: toastId });
-    } finally {
-      setIsApproving(false);
-    }
+  console.log("Approval status", approvalSuccess);
+
+  if (approvalSuccess) {
+    toast.success("Transaction approved successfully!", { id: toastId });
+  } else {
+    toast.error(approvalSuccess.body.message, { id: toastId });
+  }
+} catch (error) {
+  console.error(error);
+  toast.error("Something went wrong while approving transaction.", { id: toastId });
+}
+
   };
 
   const handleReject = (withdrawalId: string) => {
@@ -158,7 +162,7 @@ const makeSuSuProName = (companyName: string) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Pending Amount</p>
-              <p className="text-2xl font-bold text-yellow-600">₵{totalPendingAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              <p className="text-2xl font-bold text-yellow-600">${totalPendingAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
             </div>
             <div className="bg-yellow-100 p-3 rounded-lg">
               <Eye className="h-6 w-6 text-yellow-600" />
@@ -180,7 +184,7 @@ const makeSuSuProName = (companyName: string) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Approved</p>
-              <p className="text-2xl font-bold text-green-600">₵{totalApprovedAmount.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-green-600">${totalApprovedAmount.toLocaleString()}</p>
             </div>
             <div className="bg-green-100 p-3 rounded-lg">
               <CheckCircle className="h-6 w-6 text-green-600" />
@@ -267,7 +271,7 @@ const makeSuSuProName = (companyName: string) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-lg font-semibold text-gray-900">
-                      ₵{withdrawal.amount.toLocaleString()}
+                      ${withdrawal.amount.toLocaleString()}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

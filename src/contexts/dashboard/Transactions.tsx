@@ -136,7 +136,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return true;
     } else {
       console.warn('Transaction approval failed:', json);
-      return false; 
+      return {body: json
+      }; 
     }
   } catch (error) {
     console.error('Error approving transaction:', error);

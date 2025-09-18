@@ -117,11 +117,39 @@ export interface Message {
   type: 'text' | 'image' | 'file';
   senderId: string;
   createdAt: any; // Timestamp
-  readBy?: Record<string, any>; // map of staffId -> timestamp
+  readBy?: Record<string, any>; 
   storagePath?: string;
   downloadURL?: string;
 };
 
+export interface Expense {
+  id: string;
+  type: string;
+  description: string;
+  amount: number;
+  category: string;
+  date: string;
+  status: 'pending' | 'approved' | 'rejected';
+  receipt?: string;
+  recorded_by?: string;
+}
+
+export interface Asset {
+  id: string;
+  category: string;
+  name: string;
+  type: string;
+  value: number;
+  purchase_date: string;
+  depreciation_rate: number;
+  status: 'active' | 'disposed' | 'maintenance';
+}
+
+export interface Budget {
+  date: string;
+  allocated: number;
+  spent: number;
+}
 
 export const mockClients: Client[] = [
   {

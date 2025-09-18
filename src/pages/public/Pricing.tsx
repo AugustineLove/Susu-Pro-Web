@@ -5,7 +5,7 @@ const Pricing: React.FC = () => {
   const plans = [
     {
       name: 'Starter',
-      price: '₵99',
+      price: '${99',
       period: '/month',
       description: 'Perfect for very small susu groups and startups',
       features: [
@@ -28,7 +28,7 @@ const Pricing: React.FC = () => {
     },
     {
       name: 'Professional',
-      price: '₵299',
+      price: '${299',
       period: '/month',
       description: 'Ideal for established microfinance institutions',
       features: [

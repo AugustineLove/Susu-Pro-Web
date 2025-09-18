@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   X,
+  BarChart3,
   MessageCircle as Chat,
   CreditCard,
   Bell
@@ -27,10 +28,11 @@ const DashboardLayout: React.FC = () => {
     { name: 'Customers', href: '/dashboard/clients', icon: Users },
     { name: 'Contributions', href: '/dashboard/contributions', icon: PiggyBank },
     { name: 'Withdrawals', href: '/dashboard/withdrawals', icon: ArrowUpDown },
+    {name: 'Expense', href: '/dashboard/expenses', icon: BarChart3},
     { name: 'Reports', href: '/dashboard/reports', icon: FileText },
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-    {name: 'Chat', href: '/dasboard/chats', icon: Chat}
-  ];
+    {name: 'Chat', href: '/dashboard/chat', icon: Chat},
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings }
+    ];
 
   const handleLogout = () => {
     logout();

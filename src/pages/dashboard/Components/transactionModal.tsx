@@ -326,7 +326,7 @@ const filteredCustomers = customers.filter(customer =>
                             </div>
                             <div className="text-right">
                               <div className="text-sm font-medium text-emerald-600">
-                                ₵{parseFloat(customer.total_balance_across_all_accounts || '0').toLocaleString()}
+                                ${parseFloat(customer.total_balance_across_all_accounts || '0').toLocaleString()}
                               </div>
                               <div className="text-xs text-gray-500">
                                 {customer.total_transactions} transactions
@@ -362,7 +362,7 @@ const filteredCustomers = customers.filter(customer =>
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-semibold text-emerald-600">
-                          ₵{parseFloat(selectedCustomer.total_balance_across_all_accounts || '0').toLocaleString()}
+                          ${parseFloat(selectedCustomer.total_balance_across_all_accounts || '0').toLocaleString()}
                         </div>
                         <div className="text-xs text-emerald-600">Current Balance</div>
                       </div>
@@ -422,7 +422,7 @@ const filteredCustomers = customers.filter(customer =>
                                   ? 'text-emerald-600' 
                                   : 'text-gray-900'
                               }`}>
-                                ₵{account.balance.toLocaleString()}
+                                ${account.balance.toLocaleString()}
                               </div>
                               <div className={`text-xs ${
                                 selectedAccount?.id === account.id 

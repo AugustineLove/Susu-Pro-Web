@@ -46,13 +46,13 @@ const SignUp: React.FC = () => {
 
     if (!formData.company_email.trim()) {
       newErrors.company_email = 'Company email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.company_email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+${/.test(formData.company_email)) {
       newErrors.company_email = 'Please enter a valid email address';
     }
 
     if (!formData.company_phone.trim()) {
       newErrors.company_phone = 'Company phone is required';
-    } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.company_phone)) {
+    } else if (!/^\+?[\d\s\-\(\)]{10,}${/.test(formData.company_phone)) {
       newErrors.company_phone = 'Please enter a valid phone number';
     }
 

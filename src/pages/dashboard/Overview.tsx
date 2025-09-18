@@ -34,7 +34,7 @@ const Overview: React.FC = () => {
     },
     {
       title: 'Total Commissions',
-      value: `₵${stats?.totalCommissions}`,
+      value: `${stats?.totalCommissions}`,
       subtitle: 'This month',
       icon: PiggyBank,
       color: 'green',
@@ -42,7 +42,7 @@ const Overview: React.FC = () => {
     },
     {
       title: 'Total Balance',
-      value: `₵${stats?.totalBalance}`,
+      value: `${stats?.totalBalance}`,
       subtitle: 'Available funds',
       icon: TrendingUp,
       color: 'blue',
@@ -220,7 +220,7 @@ const Overview: React.FC = () => {
 
                     {/* Amount & Type */}
                     <div className="text-right">
-                      <p className="text-gray-900 font-bold text-sm">₵{Number(transaction.amount).toLocaleString()}</p>
+                      <p className="text-gray-900 font-bold text-sm">${Number(transaction.amount).toLocaleString()}</p>
                       <span
                         className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${
                           transaction.type === 'deposit'
@@ -296,7 +296,7 @@ const Overview: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">₵{withdrawal.amount.toLocaleString()}</p>
+                      <p className="font-semibold text-gray-900">${withdrawal.amount.toLocaleString()}</p>
                       <div className="flex space-x-2 mt-2">
                         <button onClick={() => {approveTransaction(withdrawal.transaction_id); refreshTransactions(); refreshCustomers();}} className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
                           Approve
