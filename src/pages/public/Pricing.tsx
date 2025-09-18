@@ -7,7 +7,7 @@ const Pricing: React.FC = () => {
       name: 'Starter',
       price: '₵99',
       period: '/month',
-      description: 'Perfect for small susu groups and startups',
+      description: 'Perfect for very small susu groups and startups',
       features: [
         'Up to 50 clients',
         'Basic contribution tracking',
