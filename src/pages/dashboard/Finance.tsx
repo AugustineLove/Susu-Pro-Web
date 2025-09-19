@@ -31,21 +31,22 @@ interface FinanceData{
 }
 
 interface FormDataState {
-  name: string;
-  category: string;
-  description: string;
-  amount: number;
-  value: number;
-  type: string;
+  name?: string;
+  category?: string;
+  description?: string;
+  amount?: number;
+  value?: number;
+  type?: string;
   date?: string;
   depreciation_rate?: string;
   purchase_date?: string;
+  allocated?: number;
 }
 
 interface ModalProps {
   show: boolean;
   onClose: () => void;
-  onSubmit: (formData: FormDataState, company_id: string) => void; // now expects formData
+  onSubmit: (formData: FormDataState, company_id: string) => void;
   formData: FormDataState;
   onFormChange: (field: keyof FormDataState, value: string) => void;
   loading: boolean;
@@ -236,6 +237,72 @@ const AssetModal: React.FC<ModalProps>  = ({ show, onClose, onSubmit, formData, 
   </div>
 );
 
+const BudgetModal = ({ show, onClose, onSubmit, formData, onFormChange, loading }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-xl max-w-md w-full p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-semibold text-gray-900">Add New Budget</h3>
+        <button 
+          onClick={() => onClose()}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          ×
+        </button>
+      </div>
+      <form className="space-y-4" onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit(formData, companyId); 
+        }}>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Amount of float</label>
+          <input
+            value={formData.allocated}
+            required
+            onChange={e => onFormChange('allocated', e.target.value )}
+            type="number"
+            placeholder="0.00"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Purchase Date</label>
+          <input
+            value={formData.date}
+            onChange={e => onFormChange('date', e.target.value )}
+            type="date"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        
+        <div className="flex space-x-3 pt-4">
+          <button
+            type="button"
+            onClick={() => onClose()}
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+             {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Adding budget...
+                </div>
+              ) : (
+                'Add Budget'
+              )}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+);
+
+
+
 
 
 // Main Component
@@ -301,9 +368,14 @@ const defaultAssetFormData: FormDataState = {
   date: new Date().toISOString().split("T")[0], 
 };
 
+const defaultBudgetFormData: FormDataState = {
+  allocated: 0,
+  date: new Date().toISOString().split("T")[0], 
+};
+
   const [expenseFormData, setExpenseFormData] = useState<FormDataState>(defaultExpenseFormData);
   const [assetFormData, setAssetFormData] = useState<FormDataState>({defaultAssetFormData});
-
+  const [budgetFormData, setBudgetFormData] = useState<FormDataState>({defaultBudgetFormData});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -341,84 +413,17 @@ const defaultAssetFormData: FormDataState = {
       console.log(error);
     }
   }  
-  const submitBudget = async (company_id: string, allocated: number, date: string) => {
+  const submitBudget = async (formData: FormDataState, company_id: string) => {
     try {
+      const { allocated, date } = formData;
       const budgetData = {allocated, date };
       await addBudget(company_id, { ...budgetData });
-      setShowBudgetModal(false);
-      setFormData({...formData, value: '', date: new Date().toISOString().split('T')[0]});
+      setShowBudgetModal(false); 
+      setBudgetFormData(defaultBudgetFormData);
     } catch (error) {
       console.log(error);
     }
   }  
-
-  const BudgetModal = ({ setShowBudgetModal }: { setShowBudgetModal: React.Dispatch<React.SetStateAction<boolean>> }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div className="bg-white rounded-xl max-w-md w-full p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Add New Budget</h3>
-        <button 
-          onClick={() => setShowBudgetModal(false)}
-          className="text-gray-400 hover:text-gray-600"
-        >
-          ×
-        </button>
-      </div>
-      <form className="space-y-4" onSubmit={e => {
-          e.preventDefault();
-          submitBudget(
-            companyId,
-            Number(formData.amount),
-            formData.date,
-          );
-        }}>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Amount of float</label>
-          <input
-            value={formData.amount}
-            onChange={e => setFormData({ ...formData, amount: e.target.value })}
-            type="number"
-            placeholder="0.00"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Purchase Date</label>
-          <input
-            value={formData.date}
-            onChange={e => setFormData({ ...formData, date: e.target.value })}
-            type="date"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        
-        <div className="flex space-x-3 pt-4">
-          <button
-            type="button"
-            onClick={() => setShowBudgetModal(false)}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-             {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Adding budget...
-                </div>
-              ) : (
-                'Add Budget'
-              )}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-);
-
 
   // Overview Tab Component
   const OverviewTab = () => {
@@ -1108,8 +1113,17 @@ const BudgetTab = () => {
   }
   loading={loading}
 />}
-      {showBudgetModal && <BudgetModal setShowBudgetModal={setShowBudgetModal} />}
-    </div>
+      {showBudgetModal && <BudgetModal
+  show={showBudgetModal}
+  onClose={() => setShowBudgetModal(false)}
+  onSubmit={submitBudget}
+  formData={budgetFormData}
+  onFormChange={(field, value) =>
+    setBudgetFormData(prev => ({ ...prev, [field]: value }))
+  }
+  loading={loading}
+/>}
+</div>
   );
 
   

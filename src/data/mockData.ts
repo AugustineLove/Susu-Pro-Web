@@ -148,7 +148,7 @@ export interface Asset {
 export interface Budget {
   date: string;
   allocated: number;
-  spent: number;
+  spent?: number;
 }
 
 export const mockClients: Client[] = [
