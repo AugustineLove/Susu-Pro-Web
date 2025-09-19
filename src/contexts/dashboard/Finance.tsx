@@ -14,8 +14,8 @@ type FinanceContextType ={
   loading: boolean;
   error: string | null;
   fetchFinanceData: () => Promise<void>;
-  addAsset: (company_id: string, data: Omit<Asset, "id">) => Promise<void>;
-  addExpense: (company_id: string, data: Omit<Expense, "id">) => Promise<void>;
+  addAsset: (company_id: string, data: Omit<Asset, "id">) => Promise<boolean>;
+  addExpense: (company_id: string, data: Omit<Expense, "id">) => Promise<boolean>;
   addBudget: (company_id: string, data: Omit<Budget, "id">) => Promise<void>;
 };
 
@@ -59,15 +59,22 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     try {
         console.log("Adding asset with data:", {company_id, ...data});
       setLoading(true);
-      await fetch(`${API_BASE}/financials/entry`, { 
+      const res = await fetch(`${API_BASE}/financials/entry`, { 
         method: "POST", 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             company_id,
         ...data })});
       await fetchFinanceData()
+       console.log('Add asset response:', res);
+       console.log('Response ok status:', res.ok);
+      if (res.ok) {
+        return true;
+      }
+      return false;
     } catch (err: any) {
       setError(err.response?.data?.message || err.message);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -84,9 +91,14 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         company_id,
         ...data })});
         console.log('Add expense response:', res);
-      await fetchFinanceData(); // refresh
+      await fetchFinanceData(); 
+      if (res.ok) {
+        return true;
+      }
+      return false;
     } catch (err: any) {
       setError(err.response?.data?.message || err.message);
+      return false;
     } finally {
       setLoading(false);
     }

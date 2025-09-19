@@ -22,6 +22,7 @@ import {
 import { useFinance } from '../../contexts/dashboard/Finance';
 import { companyId, formatDate } from '../../constants/appConstants';
 import { Asset, Budget, Expense } from '../../data/mockData';
+import toast from 'react-hot-toast';
 
 
 interface FinanceData{
@@ -108,6 +109,7 @@ interface ModalProps {
             <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
             <input
               value={formData.date}
+              required
               onChange={e => onFormChange('date', e.target.value )}
               type="date"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -193,6 +195,7 @@ const AssetModal: React.FC<ModalProps>  = ({ show, onClose, onSubmit, formData, 
           <label className="block text-sm font-medium text-gray-700 mb-2">Purchase Date</label>
           <input
             value={formData.date}
+            required
             onChange={e => onFormChange('date', e.target.value )}
             type="date"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -392,11 +395,19 @@ const defaultBudgetFormData: FormDataState = {
 
   const submitExpense = async  (formData: FormDataState, company_id: string) => {
     try {
+      const toastId= toast.loading('Adding expense...');
       const { description, amount, date, category } = formData;
       const expenseData = { description, amount, date, category };
-      await addExpense(company_id, { status: "approved", type: "expense", ...expenseData });
+      const res = await addExpense(company_id, { status: "approved", type: "expense", ...expenseData });
+      console.log(`Add expense boolean result: ${res}`);
+      if(res === true){
+        toast.success('Expense added successfully!', { id: toastId });
       setExpenseFormData(defaultExpenseFormData);
       setShowExpenseModal(false);
+      }
+      else {
+        toast.error('Failed to add expense.', { id: toastId });
+      }
     } catch (error) {
       console.log(error);
     }
@@ -406,10 +417,11 @@ const defaultBudgetFormData: FormDataState = {
       console.log(`Form data: ${JSON.stringify(formData)}`);
       const { name, value, category, date, depreciation_rate } = formData;
       const assetData = { name, category, value, date, depreciation_rate };
-      await addAsset(company_id, { status: "active", type: "asset", ...assetData });
+      const res = await addAsset(company_id, { status: "active", type: "asset", ...assetData });
+      console.log(`Add asset boolean result: ${res}`);
       setExpenseFormData(defaultAssetFormData);
       setShowAssetModal(false);
-    } catch (error) {
+      } catch (error) {
       console.log(error);
     }
   }  
