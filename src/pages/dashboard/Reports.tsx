@@ -132,7 +132,7 @@ const Reports = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { label: 'Total Clients', value: totalClients, detail: `${activeClients} active`, icon: Users, color: 'indigo', bg: 'indigo-100' },
-          { label: 'Total Contributions', value: `${totalContributions.toLocaleString()}`, detail: '↑ Growth', icon: PiggyBank, color: 'green', bg: 'green-100' },
+          { label: 'Overall Contributions', value: `${totalContributions.toLocaleString()}`, detail: '↑ Growth', icon: PiggyBank, color: 'green', bg: 'green-100' },
           { label: 'Current Balance', value: `${totalBalance.toLocaleString()}`, detail: 'Available', icon: TrendingUp, color: 'blue', bg: 'blue-100' },
           { label: 'Total Withdrawals', value: `${totalWithdrawals.toLocaleString()}`, detail: 'Completed', icon: Download, color: 'orange', bg: 'orange-100' }
         ].map((metric, idx) => (
@@ -140,7 +140,7 @@ const Reports = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">{metric.label}</p>
-                <p className="text-3xl font-bold text-gray-900">{metric.value}</p>
+                <p className="text-3xl font-bold text-gray-900">¢{metric.value}</p>
                 <p className={`text-sm text-${metric.color}-600 mt-1`}>{metric.detail}</p>
               </div>
               <div className={`bg-${metric.bg} p-3 rounded-lg`}>

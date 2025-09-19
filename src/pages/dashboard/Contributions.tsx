@@ -43,8 +43,8 @@ const Contributions: React.FC = () => {
 
   // Calculate stats
   const totalAmount = transactions
-    .filter(c => c.status === 'completed')
-    .reduce((sum, c) => sum + Number(c.amount), 0);
+    .filter(c => c.status === 'completed' || c.status === 'approved')
+    .reduce((sum, c) => Number(sum) + Number(c.amount), 0);
   const pendingAmount = transactions
     .filter(c => c.status === 'pending')
     .reduce((sum, c) => sum + Number(c.amount), 0);
@@ -54,7 +54,7 @@ const Contributions: React.FC = () => {
       const now = new Date();
       return contributionDate.getMonth() === now.getMonth() && 
              contributionDate.getFullYear() === now.getFullYear() &&
-             c.status === 'completed';
+             c.status === 'completed' || c.status === 'approved';
     })
     .reduce((sum, c) => sum + Number(c.amount), 0);
 
@@ -155,8 +155,8 @@ const Contributions: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Contributions</p>
-              <p className="text-2xl font-bold text-gray-900">${stats?.totalBalance}</p>
+              <p className="text-sm text-gray-600">Total Balance</p>
+              <p className="text-2xl font-bold text-gray-900">¢{stats?.totalBalance}</p>
             </div>
             <div className="bg-green-100 p-3 rounded-lg">
               <PiggyBank className="h-6 w-6 text-green-600" />
@@ -166,8 +166,8 @@ const Contributions: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">This Month</p>
-              <p className="text-2xl font-bold text-blue-600">${thisMonthAmount.toLocaleString()}</p>
+              <p className="text-sm text-gray-600">This Month (Overall contributions)</p>
+              <p className="text-2xl font-bold text-blue-600">¢{thisMonthAmount.toLocaleString()}</p>
             </div>
             <div className="bg-blue-100 p-3 rounded-lg">
               <Calendar className="h-6 w-6 text-blue-600" />
@@ -178,7 +178,7 @@ const Contributions: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-yellow-600">${pendingAmount.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-yellow-600">¢{pendingAmount.toLocaleString()}</p>
             </div>
             <div className="bg-yellow-100 p-3 rounded-lg">
               <Eye className="h-6 w-6 text-yellow-600" />
@@ -190,7 +190,7 @@ const Contributions: React.FC = () => {
             <div>
               <p className="text-sm text-gray-600">Average Amount</p>
               <p className="text-2xl font-bold text-teal-600">
-                ${Math.round(totalAmount / transactions.filter(c => c.status === 'completed').length || 1).toLocaleString()}
+                ¢{Math.round(totalAmount / transactions.filter(c => c.status === 'completed').length || 1).toLocaleString()}
               </p>
             </div>
             <div className="bg-teal-100 p-3 rounded-lg">
@@ -287,7 +287,7 @@ const Contributions: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-lg font-semibold text-gray-900">
-                      ${contribution.amount.toLocaleString()}
+                      ¢{contribution.amount.toLocaleString()}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
