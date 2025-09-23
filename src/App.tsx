@@ -33,6 +33,7 @@ import ChatList from './pages/dashboard/ChatList';
 import Chat from './pages/dashboard/ChatList';
 import FinancialDashboard from './pages/dashboard/Finance';
 import { FinanceProvider } from './contexts/dashboard/Finance';
+import SubscribeComponent from './pages/dashboard/Subscribe';
 
 function App() {
   return (
@@ -53,6 +54,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/two-factor" element={<TwoFactorPage />} />
+          {/* Payment */}
+          <Route path="/subscribe" element={<SubscribeComponent />} />
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={

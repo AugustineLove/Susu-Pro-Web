@@ -445,7 +445,7 @@ const defaultBudgetFormData: FormDataState = {
   const budgetSpent = budgets.reduce((sum, b) => Number(sum) + (Number(b.spent) || 0), 0);
   console.log(`Budget spent: ${budgetSpent}`);
   const budgetUtilization = budgetAllocated > 0 ? (budgetSpent / budgetAllocated) * 100 : 0;
-  const monthlySavings = totalAssets - totalExpenses; // or however you want to compute it
+  const monthlySavings = totalAssets - totalExpenses;
 
      return (
     <div className="space-y-6">

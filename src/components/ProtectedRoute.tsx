@@ -17,7 +17,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  return company ? <>{children}</> : <Navigate to="/login" replace />;
+  if (!company) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const signupDate = new Date(company.signupDate);
+  const today = new Date();
+  const diffInDays =
+    Math.floor((today.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    console.log('Days since signup:', diffInDays);
+  if (diffInDays > 30) {
+    return <Navigate to="/subscribe" replace />;
+  }
+
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

@@ -79,12 +79,11 @@ const makeSuSuProName = (companyName: string) => {
   if (approvalSuccess) {
     toast.success("Transaction approved successfully!", { id: toastId });
   } else {
-    toast.error(approvalSuccess.body.message, { id: toastId });
+    toast.error("Failed to approve transaction", {id: toastId });
   }
 } catch (error) {
   console.error(error);
-  toast.error("Something went wrong while approving transaction.", { id: toastId });
-}
+  }
 
   };
 

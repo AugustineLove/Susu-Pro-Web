@@ -86,7 +86,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
     transaction_date: transaction?.transaction_date 
       ? new Date(transaction.transaction_date).toISOString().slice(0, 16)
       : new Date().toISOString().slice(0, 16),
-    staked_by: transaction?.staked_by || ''
+    staked_by: transaction?.staked_by || '',
+    company_id: companyId
   });
 
   const [customerSearch,  setCustomerSearch] = useState('');
