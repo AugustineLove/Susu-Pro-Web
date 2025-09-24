@@ -69,6 +69,7 @@ const Chat: React.FC<ChatProps> = ({
   const [user, setUser] = useState<User | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { company } = useAuth();
+  const [isSendingMessageToStaff, setIsSendingMessageToStaff] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -92,8 +93,7 @@ useEffect(() => {
       if (userDoc.exists()) {
         fetchedUser = { id: userDoc.id, ...userDoc.data() } as User;
         setUser(fetchedUser);
-        console.log(`Fetched user: ${JSON.stringify(fetchedUser)}`)
-      }
+        }
 
       // 2. Fetch all staff data SECOND
       const staffQuery = query(collection(db, 'companies', companyId, 'staff'));
@@ -101,19 +101,14 @@ useEffect(() => {
       const staffList: Staff[] = staffSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Staff));
       setStaff(staffList);
 
-      console.log(`Staff list object: ${JSON.stringify(staffList)}`)
-      
       // Auto-create chat rooms if needed (optional)
       await createDefaultChatRooms(staffList);
 
       // 3. FINALLY, fetch chat rooms - this now waits for initial data to be processed
       unsubscribe = await fetchChatRooms();
       
-      console.log('Chat rooms initialized successfully');
-
-    } catch (error) {
-      console.error('Error initializing chats:', error);
-    } finally {
+      } catch (error) {
+      } finally {
       // This now correctly runs AFTER the initial chat rooms are loaded and processed
       setLoading(false);
     }
@@ -247,8 +242,6 @@ const fetchChatRooms = () => {
           const roomsPromises = snapshot.docs.map(async (docSnapshot) => {
             const roomData = docSnapshot.data();
 
-            console.log(`Room data: ${JSON.stringify(roomData)}`);
-
             // Filter rooms where the current user is a participant
             if (!roomData.participants?.includes(company?.id)) {
               return null; // Return null for rooms to be filtered out
@@ -265,9 +258,13 @@ const fetchChatRooms = () => {
                   id: msgDoc.id,
                   content: msgData.content || '',
                   timestamp: msgData.timestamp?.toMillis() || Date.now(),
+                  senderId: msgData.senderId || 'system',
+                  senderName: msgData.senderName || '',
+                  status: msgData.status || 'sent',
+                  type: msgData.type || 'text'
                };
             }).reverse(); // Map and then reverse is slightly more efficient
-
+            
             // Determine chat display info using passed-in data
             let displayName = roomData.name;
             let avatar = roomData.name.split(' ').map((n: string) => n[0]).join('').toUpperCase();
@@ -308,8 +305,6 @@ const fetchChatRooms = () => {
           // Wait for all the message-fetching and data-processing to complete
           const rooms = (await Promise.all(roomsPromises)).filter(Boolean) as ChatRoom[];
           
-          console.log(`Rooms: ${rooms.length}, Rooms Data: ${JSON.stringify(rooms)}`);
-
           setChatRooms(rooms);
 
           // 2. On the very first data load, resolve the promise AFTER data is set
@@ -339,16 +334,13 @@ const filteredChats = chatRooms.filter(chat =>
   chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
   chat.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
 );
-console.log(`Filtered chats: ${filteredChats}`);
-
   const currentChat = chatRooms.find(chat => chat.id === selectedChat);
 
-  console.log(`Current chat: ${JSON.stringify(currentChat?.messages)}, Members: ${currentChat?.memberCount}`);
-
+  
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedChat) return;
-    console.log(`Selected chat: ${selectedChat}, ${currentChat?.memberCount}`);
     try {
+      setIsSendingMessageToStaff(true);
       const messageData = {
         senderId: company?.id,
         senderName: company?.companyName,
@@ -377,8 +369,10 @@ console.log(`Filtered chats: ${filteredChats}`);
 
       setNewMessage('');
       setTimeout(scrollToBottom, 100);
+      setIsSendingMessageToStaff(false);
       
     } catch (error) {
+      setIsSendingMessageToStaff(false);
       console.error('Error sending message:', error);
     }
   };
@@ -472,7 +466,7 @@ console.log(`Filtered chats: ${filteredChats}`);
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm ${
                     chat.type === 'group' ? 'bg-green-500' : 'bg-blue-500'
                   }`}>
-                    {chat.avatar}
+                    {chat.name.substring(0, 2).toLocaleUpperCase()}
                   </div>
                   {chat.type === 'direct' && chat.isOnline && (
                     <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 border-2 border-white rounded-full"></div>
@@ -634,13 +628,19 @@ console.log(`Filtered chats: ${filteredChats}`);
                 <Smile className="w-5 h-5" />
               </button>
               
-              <button
+               {
+                !isSendingMessageToStaff ? (
+                  <button
                 onClick={sendMessage}
                 disabled={!newMessage.trim()}
                 className="p-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              >
+              > 
                 <Send className="w-5 h-5" />
               </button>
+                ) : <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400 mr-2"></div>
+                       </div>    
+               }
             </div>
           </div>
         </div>

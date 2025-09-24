@@ -17,8 +17,8 @@ const Reports = () => {
   // Calculate metrics from real data
   const totalClients = customers.length;
   const activeClients = customers.filter(c => c.company_id === companyId).length;
-  const contributions = transactions.filter(t =>  t.status === 'completed' || t.status ==='approved');
-  const withdrawals = transactions.filter(t => t.type === 'withdrawal' && t.status === 'completed');
+  const contributions = transactions.filter(t =>  t.type === 'deposit');
+  const withdrawals = transactions.filter(t => t.type === 'withdrawal' && t.status === 'completed' || t.status ==='approved');
   const totalContributions = contributions.reduce((sum, t) => Number(sum) + Number(t.amount), 0);
   const totalWithdrawals = withdrawals.reduce((sum, t) => Number(sum) + Number(t.amount), 0);
   const totalBalance = stats?.totalBalance || totalContributions - totalWithdrawals;
@@ -70,8 +70,8 @@ const Reports = () => {
       color: 'yellow' as StatusColor,
     },
     {
-      status: 'Failed',
-      count: transactions.filter(t => t.status === 'failed').length,
+      status: 'Rejected',
+      count: transactions.filter(t => t.status === 'rejected').length,
       color: 'red' as StatusColor,
     },
   ]

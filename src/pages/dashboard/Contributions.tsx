@@ -54,7 +54,7 @@ const Contributions: React.FC = () => {
       const now = new Date();
       return contributionDate.getMonth() === now.getMonth() && 
              contributionDate.getFullYear() === now.getFullYear() &&
-             c.status === 'completed' || c.status === 'approved';
+             c.type === 'deposit';
     })
     .reduce((sum, c) => sum + Number(c.amount), 0);
 
