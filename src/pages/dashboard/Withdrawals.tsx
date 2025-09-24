@@ -24,7 +24,7 @@ const Withdrawals: React.FC = () => {
 
   // Calculate stats
   const pendingWithdrawals = transactions.filter(w => w.status === 'pending');
-  const approvedWithdrawals = transactions.filter(w => w.status === 'approved' || w.status === 'completed');
+  const approvedWithdrawals = transactions.filter(w => w.type === 'withdrawal' && (w.status === 'approved' || w.status === 'completed'));
   const totalPendingAmount = pendingWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
   const totalApprovedAmount = approvedWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
   
