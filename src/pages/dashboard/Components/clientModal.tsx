@@ -3,8 +3,9 @@ import { Calendar, User, Mail, Phone, MapPin, CreditCard, Users, DollarSign, Use
 import { Account, Customer } from "../../../data/mockData";
 import { useCustomers } from "../../../contexts/dashboard/Customers";
 import { useAuth } from "../../../contexts/AuthContext";
-import { companyId } from "../../../constants/appConstants";
 import { useStaff } from "../../../contexts/dashboard/Staff";
+import { getEffectiveCompanyId } from "../../../constants/appConstants";
+import toast from "react-hot-toast";
 
 // Staff Context (you can import this from your actual context file)
 interface Staff {
@@ -38,6 +39,7 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
   const { customers, addCustomer, loading } = useCustomers();
   const { company } = useAuth();
   const [startedAdding, setStartedAdding] = useState(false);
+  const companyId = getEffectiveCompanyId();
   const [formData, setFormData] = useState({
     name: client?.name || '',
     email: client?.email || '',
@@ -91,13 +93,11 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
   const handleSubmit = async (e: React.FormEvent) => {
     setStartedAdding(true);
     e.preventDefault();
+    const toastId = "Adding customer...";
     console.log('Button clicked')
     if (!validateForm()) setStartedAdding(false);
     console.log('Form validated')
     if (!client) {
-    const companyJSON = localStorage.getItem('susupro_company');
-      const company = companyJSON ? JSON.parse(companyJSON) : null;
-      const companyId = company?.id;
       console.log('Assigned mobile banker:', formData.registered_by);
       const data =   { 
       ...formData, 
@@ -112,8 +112,9 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
       console.log('Updating client:', data);
       console.log('Add account', addAccount);
       await addCustomer(data, formData.account_type);
+      toast.success('Client added successfully', { id: toastId });
       setStartedAdding(false);
-      window.location.reload();
+      // window.location.reload();
       onClose();
     } else {
       onSave({

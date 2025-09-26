@@ -34,6 +34,9 @@ import Chat from './pages/dashboard/ChatList';
 import FinancialDashboard from './pages/dashboard/Finance';
 import { FinanceProvider } from './contexts/dashboard/Finance';
 import SubscribeComponent from './pages/dashboard/Subscribe';
+import CustomerDetailsPage from './pages/dashboard/CustomerDetails';
+import StaffManagement from './pages/dashboard/Staff';
+import LoanManagement from './pages/dashboard/Loans';
 
 function App() {
   return (
@@ -83,6 +86,9 @@ function App() {
             <Route path="reports" element={<Reports />} />
             <Route path="chat" element={<Chat />} />
             <Route path="expenses" element={<FinancialDashboard />} />
+            <Route path="staffs" element={<StaffManagement />} />
+            <Route path="loans" element={<LoanManagement/>} />
+            <Route path="clients/customer-details/:id" element={<CustomerDetailsPage />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

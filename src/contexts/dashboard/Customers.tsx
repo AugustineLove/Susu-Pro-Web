@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Account } from '../../data/mockData';
-import { companyId } from '../../constants/appConstants';
+import { companyId, getEffectiveCompanyId } from '../../constants/appConstants';
 
 // Define the customer structure
 export interface Customer {
   company_id?: string;
+  account_number?: string;
   id: string;
   name: string;
   email: string;
@@ -29,7 +30,9 @@ export interface Customer {
 
 interface CustomersContextType {
   customers: Customer[];
+  customer?: Customer;
   loading: boolean;
+  fetchCustomerById: (customerId: string) => Promise<void>;
   refreshCustomers: () => Promise<void>;
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
    addCustomer: (newCustomer: Omit<Customer, 'id' | 'created_at'>, account: string) => Promise<void>;
@@ -49,13 +52,11 @@ export const useCustomers = () => {
 export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [customer, setCustomer] = useState<Customer>();
 
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const companyJSON = localStorage.getItem('susupro_company');
-      const company = companyJSON ? JSON.parse(companyJSON) : null;
-      const companyId = company?.id;
 
       if (!companyId) {
         console.warn('Company ID not found in localStorage');
@@ -79,6 +80,23 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const fetchCustomerById = async (customerId?: string) => {
+    setLoading(true);
+    try{
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/customers/${customerId}`);
+      if (res.ok){
+        const data = await res.json();
+        console.log(`Customer data ${JSON.stringify(data)}`);
+        setCustomer(data.data);
+      }
+    } catch(error){
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
   const addAccount = async(newAccount: Omit<Account, 'id' | 'created_at'>)=>{
     try {
       console.log('Adding account for customer');
@@ -98,10 +116,16 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }
 
   const addCustomer = async (newCustomer: Omit<Customer, 'id' | 'created_at'>, account_type:string) => {
+    const companyId = getEffectiveCompanyId();
+    const token = localStorage.getItem('susupro_token');
+    console.log('Company ID in addCustomer: ', companyId);
     try {
       const res = await fetch(`https://susu-pro-backend.onrender.com/api/customers/create`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',  
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(newCustomer),
       });
       console.log('Account in the addCustomer function: ', account_type);
@@ -157,7 +181,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   return (
-    <CustomersContext.Provider value={{ customers, loading, refreshCustomers: fetchCustomers, setCustomers, addCustomer, deleteCustomer  }}>
+    <CustomersContext.Provider value={{ customers, customer, loading, refreshCustomers: fetchCustomers, fetchCustomerById, setCustomers, addCustomer, deleteCustomer  }}>
       {children}
     </CustomersContext.Provider>
   );

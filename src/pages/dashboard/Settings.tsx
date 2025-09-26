@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Save, User, Lock, Bell, CreditCard, Shield, Eye, EyeOff, Users } from 'lucide-react';
-import { companyId } from '../../constants/appConstants';
+import { companyId, userRole } from '../../constants/appConstants';
 import { useStaff } from '../../contexts/dashboard/Staff';
+import toast from 'react-hot-toast';
 
 const Settings: React.FC = () => {
   const { company } = useAuth();
@@ -55,7 +56,7 @@ const Settings: React.FC = () => {
   const [companySettings, setCompanySettings] = useState({
     companyName: company?.companyName || '',
     registrationNumber: '',
-    contactEmail: company?.email || '',
+    contactEmail: company?.parentCompanyEmail || company?.email,
     supportPhone: company?.phone || '',
     currency: 'GHS',
     language: 'English'
@@ -140,6 +141,7 @@ const verifyOtp = async () => {
   const handleAddStaff = async () => {
     console.log(`Adding staff ${companyId}`);
     try {
+      const toastId= toast.loading('Adding staff...');
       const res = await fetch('https://susu-pro-backend.onrender.com/api/staff/create-agent', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -153,8 +155,8 @@ const verifyOtp = async () => {
           "company_id": companyId
       })
       });
+      const resData = await res.json();
       if(res.ok){
-        alert('Staff member added successfully!');
         setStaffData({
           full_name: "",
           email: "",
@@ -164,7 +166,11 @@ const verifyOtp = async () => {
           staff_id: "",
           address: "",
         });
+        toast.success('Staff added successfully!', {id: toastId});
         refreshStaff();
+      }
+      if(!res.ok){
+        toast.error(`${JSON.stringify(resData.message)}`, {id: toastId});
       }
     } catch (error) {
       console.log(error);
@@ -776,13 +782,13 @@ const verifyOtp = async () => {
                   </div>
                 </div>
                 <div className="mt-6">
-                  <button
+                  { userRole === 'admin' ? <button
                     onClick={handleSaveCompany}
                     className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
                   >
                     <Save className="h-5 w-5 mr-2" />
                     Save Settings
-                  </button>
+                  </button>: null}
                 </div>
               </div>
             </div>

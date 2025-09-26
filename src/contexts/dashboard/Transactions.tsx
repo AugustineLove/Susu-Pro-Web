@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Transaction } from '../../data/mockData';
 import { useCustomers } from './Customers';
 import { useStats } from './DashboardStat';
+import { companyId, userRole } from '../../constants/appConstants';
 
 export type TransactionType = {
   transaction_id: string;
@@ -13,16 +14,19 @@ export type TransactionType = {
   customer_name: string;
   customer_phone: string;
   staff_name: string;
+  account_type: string;
   status: string;
   unique_code: string;
 };
 
 type TransactionContextType = {
   transactions: TransactionType[];
+  customerTransactions: TransactionType[];
   loading: boolean;
+  fetchCustomerTransactions: (customerId: string) => Promise<void>;
   refreshTransactions: () => Promise<void>;
-  addTransaction: (newTransaction: Omit<Transaction, 'id' | 'created_at'>) => Promise<void>;
-  approveTransaction: (transactionId: string, messageData: {}) => Promise<boolean>;
+  addTransaction: (newTransaction: Omit<Transaction, 'id' | 'created_at'>) => Promise<boolean | undefined>;
+  approveTransaction: (transactionId: string, messageData: {}) => Promise<boolean | undefined>;
   rejectTransaction: (transactionId: string) => Promise<void>;
 };
 
@@ -39,25 +43,42 @@ export const useTransactions = () => {
 
 export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
+  const [customerTransactions, setCustomerTransactions] = useState<TransactionType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { customers, refreshCustomers } = useCustomers();
   const { refreshStats } = useStats();
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const companyId = JSON.parse(localStorage.getItem('susupro_company')!)?.id;
-      
       const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/all/${companyId}`);
       const json = await res.json();
 
       if (json.status === 'success') {
         setTransactions(json.data);
-        console.log(`Fetched transactions: ${json.data}`);
+        console.log(`Fetched transactions: ${JSON.stringify(json.data)}`);
         } else {
         console.error('Failed to fetch transactions:', json.message);
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCustomerTransactions = async (customerId: string) => {
+    try {
+      setLoading(true);
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/customer/${customerId}`);
+      const json = await res.json();
+      if (json.status === 'success') {
+        setCustomerTransactions(json.data);
+        console.log(`Fetched customer transactions: ${json.data}`);
+      } else {
+        console.error('Failed to fetch customer transactions:', json.message);
+      }
+    } catch (error) {
+      console.error('Error fetching customer transactions:', error);
     } finally {
       setLoading(false);
     }
@@ -73,21 +94,26 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         body: JSON.stringify(newTransaction),
       });
       const json = await res.json();
+      console.log('Add transaction response:', json);
 
       if (json.status === 'success') {
         await fetchTransactions();
         await refreshCustomers();
         await refreshStats();
+        return true;
       }
       else if(json.status === 'insufficient_balance'){
         console.log('Insufficient balance for transaction');
         alert('Insufficient balance for this transaction');
+        return false;
       } 
       else {
         console.error('Failed to add transaction:', json.message);
+        return false;
       }
     } catch (error) {
       console.error('Error adding transaction:', error);
+      return false;
     }
   };
 
@@ -175,7 +201,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <TransactionContext.Provider value={{ transactions, loading, refreshTransactions: fetchTransactions, addTransaction, approveTransaction, rejectTransaction }}>
+    <TransactionContext.Provider value={{ transactions, customerTransactions, loading, refreshTransactions: fetchTransactions, addTransaction, approveTransaction, fetchCustomerTransactions, rejectTransaction }}>
       {children}
     </TransactionContext.Provider>
   );

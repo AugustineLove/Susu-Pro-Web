@@ -4,6 +4,7 @@ import { mockClients, Client, Customer, Account } from '../../data/mockData';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
 import { useCustomers } from '../../contexts/dashboard/Customers';
 import { ClientModal } from './Components/clientModal';
+import { useNavigate } from 'react-router-dom';
 
 const Clients: React.FC = () => {
   const [clients, setClients] = useState<Customer[]>([]);
@@ -15,6 +16,7 @@ const Clients: React.FC = () => {
   const { customers, loading, addCustomer, refreshCustomers, deleteCustomer } = useCustomers();
   const uniqueLocations = Array.from(new Set(customers.map(c => c.location)));
 
+  const navigate = useNavigate();
 
   const filteredClients = customers.filter(customer => {
   const name = customer.name?.toLowerCase() || '';
@@ -264,9 +266,12 @@ const Clients: React.FC = () => {
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-                      <button className="text-gray-600 hover:text-gray-900">
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
+                      <button
+                      className="text-gray-600 hover:text-gray-900"
+                      onClick={() => navigate(`customer-details/${customer.customer_id}`)}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
                     </div>
                   </td>
                 </tr>

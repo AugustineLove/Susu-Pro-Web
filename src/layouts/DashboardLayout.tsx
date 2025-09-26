@@ -30,6 +30,8 @@ const DashboardLayout: React.FC = () => {
     { name: 'Withdrawals', href: '/dashboard/withdrawals', icon: ArrowUpDown },
     {name: 'Expense', href: '/dashboard/expenses', icon: BarChart3},
     { name: 'Reports', href: '/dashboard/reports', icon: FileText },
+    // {name: 'Staffs', href: '/dashboard/staffs', icon: Users},
+    // { name: 'Loans', href: '/dashboard/loans', icon: CreditCard },
     {name: 'Chat', href: '/dashboard/chat', icon: Chat},
     { name: 'Settings', href: '/dashboard/settings', icon: Settings }
     ];
@@ -99,15 +101,18 @@ const DashboardLayout: React.FC = () => {
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
-                  {company?.companyName.charAt(0)}
+                  {company?.staffName?.charAt(0) || company?.companyName.charAt(0)}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
+                  {company?.staffName}
+                </p>
+                <p className="text-sm text-[9px] font-medium text-gray-700 truncate">
                   {company?.companyName}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
-                  {company?.email}
+                <p className="text-xs text-[9px] text-gray-500 truncate">
+                  {company?.email || company?.parentCompanyEmail}
                 </p>
               </div>
             </div>
@@ -150,7 +155,9 @@ const DashboardLayout: React.FC = () => {
                 <Bell className="h-6 w-6" />
                 <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
               </button>
+              <p className='text-black'>{company?.staffName}</p>
             </div>
+            
           </div>
         </div>
 

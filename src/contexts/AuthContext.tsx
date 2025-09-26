@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { companyJSON } from '../constants/appConstants';
 
 interface Company {
   id: string;
@@ -10,7 +11,11 @@ interface Company {
   website: string;
   two_factor_enabled: boolean;
   login_notifications: boolean;
-  has_paid: boolean
+  has_paid: boolean;
+  staffName?: string;
+  companyId?: string;
+  type?: string;
+  parentCompanyEmail?: string;
 }
 
 interface AuthContextType {
@@ -36,32 +41,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedCompany = localStorage.getItem('susupro_company');
-    if (storedCompany) {
-      setCompany(JSON.parse(storedCompany));
+    if (companyJSON) {
+      setCompany(JSON.parse(companyJSON));
     }
     setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<{ requires2FA?: boolean; companyId?: string; success: boolean }> => {
     setIsLoading(true);
-
+    const token = localStorage.getItem('susupro_token') || '';
     try {
       const response = await fetch('https://susu-pro-backend.onrender.com/api/auth/login-company', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
-
+      console.log(`Login successful for company: ${JSON.stringify(data.data)}`);
       if (response.ok) {
         const companyData = data.data;
         const token = data.token;
-
-        // Store company and token
         setCompany(companyData);
         localStorage.setItem('susupro_company', JSON.stringify(companyData));
         localStorage.setItem('susupro_token', token);

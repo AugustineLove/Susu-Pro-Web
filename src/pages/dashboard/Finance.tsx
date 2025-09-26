@@ -244,7 +244,7 @@ const BudgetModal = ({ show, onClose, onSubmit, formData, onFormChange, loading 
   <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div className="bg-white rounded-xl max-w-md w-full p-6">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Add New Budget</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Add New Float</h3>
         <button 
           onClick={() => onClose()}
           className="text-gray-400 hover:text-gray-600"
@@ -268,7 +268,7 @@ const BudgetModal = ({ show, onClose, onSubmit, formData, onFormChange, loading 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Purchase Date</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Float Date</label>
           <input
             value={formData.date}
             onChange={e => onFormChange('date', e.target.value )}
@@ -833,7 +833,7 @@ const BudgetTab = () => {
           onClick={() => setShowBudgetModal(true)}
         >
           <Plus className="w-4 h-4" />
-          <span>Create Budget</span>
+          <span>Create Float</span>
         </button>
       </div>
 

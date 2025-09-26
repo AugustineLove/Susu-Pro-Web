@@ -19,6 +19,7 @@ import { useStaff } from "../../../contexts/dashboard/Staff";
 import { useAccounts } from "../../../contexts/dashboard/Account";
 import { companyId, companyName } from "../../../constants/appConstants";
 import { useTransactions } from "../../../contexts/dashboard/Transactions";
+import toast from 'react-hot-toast';
 
 // Mock interfaces (replace with your actual imports)
 interface Customer {
@@ -94,7 +95,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { addTransaction, refreshTransactions } = useTransactions();
+  const { addTransaction, refreshTransactions, loading } = useTransactions();
   
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -206,7 +207,8 @@ const filteredCustomers = customers.filter(customer =>
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const toastId= toast.loading('Adding transaction...');
     if (!validateForm()) return;
     const status = formData.transaction_type === 'withdrawal' ? 'pending' : 'completed';
     const transactionData = {
@@ -218,10 +220,13 @@ const filteredCustomers = customers.filter(customer =>
       status: status,
     };
     console.log('Submitting transaction:', transactionData);
-    addTransaction(transactionData);
-    onClose();
-    refreshTransactions();
-    refreshCustomers();
+    const addBool = await addTransaction(transactionData);
+    if (addBool === true) {
+      toast.success('Transaction successfully created', {id: toastId});
+      onClose();
+      refreshTransactions();
+      refreshCustomers();
+    };
     if (transaction) {
       onSave({ ...transaction, ...transactionData });
     } else {
@@ -579,7 +584,14 @@ const filteredCustomers = customers.filter(customer =>
               onClick={handleSubmit}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-blue-600 text-white rounded-xl hover:from-emerald-700 hover:to-blue-700 transition-all font-medium shadow-lg"
             >
-              {transaction ? 'Update Transaction' : 'Create Transaction'}
+              {transaction ? 'Update Transaction' : loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Adding transaction...
+                </div>
+              ) : (
+                'Add transaction'
+              )}
             </button>
           </div>
         </div>

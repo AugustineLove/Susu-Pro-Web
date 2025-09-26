@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { companyId } from '../../constants/appConstants';
 
 export interface Staff {
     id: string;
@@ -27,9 +28,6 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const fetchStaff = async () => {
     setLoading(true);
     try {
-      const companyJSON = localStorage.getItem("susupro_company");
-      const company = companyJSON ? JSON.parse(companyJSON) : null;
-      const companyId = company?.id;
 
       if (!companyId) {
         console.warn("Company ID not found in localStorage");
