@@ -19,7 +19,7 @@ const Settings: React.FC = () => {
 
   console.log(company?.two_factor_enabled);
   const [profileData, setProfileData] = useState({
-    name: company?.companyName || '',
+    name: company?.staffName || company?.companyName || '',
     email: company?.email || '',
     company: company?.address || '',
     phone: company?.phone || '',
@@ -57,7 +57,7 @@ const Settings: React.FC = () => {
     companyName: company?.companyName || '',
     registrationNumber: '',
     contactEmail: company?.parentCompanyEmail || company?.email,
-    supportPhone: company?.phone || '',
+    supportPhone: company?.parentPhone || company?.phone,
     currency: 'GHS',
     language: 'English'
   });
@@ -426,10 +426,10 @@ const verifyOtp = async () => {
                       <option value="">Select role</option>
                       <option value="admin">Admin</option>
                       <option value="manager">Manager</option>
-                      <option value="mobile banker">Mobile Banker</option>
-                      <option value="financial advisor">Financial Advisor</option>
-                      <option value="cashier">Cashier</option>
-                      <option value="officer">Loan Officer</option>
+                      <option value="mobile_banker">Mobile Banker</option>
+                      <option value="financial_advisor">Financial Advisor</option>
+                      <option value="teller">Cashier</option>
+                      <option value="loan_officer">Loan Officer</option>
                     </select>
                   </div>
 

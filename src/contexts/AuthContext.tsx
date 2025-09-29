@@ -1,22 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { companyJSON } from '../constants/appConstants';
+import { Company } from '../data/mockData';
 
-interface Company {
-  id: string;
-  companyName: string;
-  email: string;
-  phone: string;
-  address: string;
-  password?: string;
-  website: string;
-  two_factor_enabled: boolean;
-  login_notifications: boolean;
-  has_paid: boolean;
-  staffName?: string;
-  companyId?: string;
-  type?: string;
-  parentCompanyEmail?: string;
-}
 
 interface AuthContextType {
   company: Company | null;

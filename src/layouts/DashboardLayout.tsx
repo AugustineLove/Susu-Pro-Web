@@ -16,6 +16,7 @@ import {
   CreditCard,
   Bell
 } from 'lucide-react';
+import { userPermissions } from '../constants/appConstants';
 
 const DashboardLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -28,13 +29,15 @@ const DashboardLayout: React.FC = () => {
     { name: 'Customers', href: '/dashboard/clients', icon: Users },
     { name: 'Contributions', href: '/dashboard/contributions', icon: PiggyBank },
     { name: 'Withdrawals', href: '/dashboard/withdrawals', icon: ArrowUpDown },
-    {name: 'Expense', href: '/dashboard/expenses', icon: BarChart3},
+    ...(userPermissions?.ALTER_FINANCE
+      ? [{ name: 'Expense', href: '/dashboard/expenses', icon: BarChart3 }]
+      : []),
     { name: 'Reports', href: '/dashboard/reports', icon: FileText },
-    // {name: 'Staffs', href: '/dashboard/staffs', icon: Users},
-    // { name: 'Loans', href: '/dashboard/loans', icon: CreditCard },
-    {name: 'Chat', href: '/dashboard/chat', icon: Chat},
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings }
-    ];
+    // { name: 'Staffs', href: '/dashboard/staffs', icon: Users },
+    { name: 'Loans', href: '/dashboard/loans', icon: CreditCard },
+    { name: 'Chat', href: '/dashboard/chat', icon: Chat },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  ];
 
   const handleLogout = () => {
     logout();

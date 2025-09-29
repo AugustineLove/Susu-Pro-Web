@@ -66,7 +66,7 @@ const Home: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-indigo-200">Total Balance</span>
-                    <span className="text-2xl font-bold">$45,230</span>
+                    <span className="text-2xl font-bold">¢45,230</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-indigo-200">Active Clients</span>
@@ -173,10 +173,10 @@ const Home: React.FC = () => {
                   <div className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                        <span className="text-indigo-600 text-sm font-medium">AJ</span>
+                        <span className="text-indigo-600 text-sm font-medium">PL</span>
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">Alice Johnson</div>
+                        <div className="text-sm font-medium text-gray-900">Priscilla Love</div>
                         <div className="text-xs text-gray-500">Contribution received</div>
                       </div>
                     </div>
@@ -185,10 +185,10 @@ const Home: React.FC = () => {
                   <div className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
-                        <span className="text-teal-600 text-sm font-medium">BS</span>
+                        <span className="text-teal-600 text-sm font-medium">DD</span>
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">Bob Smith</div>
+                        <div className="text-sm font-medium text-gray-900">Daniel De-Graft</div>
                         <div className="text-xs text-gray-500">Withdrawal approved</div>
                       </div>
                     </div>

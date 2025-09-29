@@ -26,23 +26,72 @@ import { useParams } from 'react-router-dom';
 import { useCustomers } from '../../contexts/dashboard/Customers';
 import { useAccounts } from '../../contexts/dashboard/Account';
 import { useTransactions } from '../../contexts/dashboard/Transactions';
+import { userPermissions } from '../../constants/appConstants';
+import { ClientModal } from './Components/clientModal';
+import { Account, Customer } from '../../data/mockData';
+import toast from 'react-hot-toast';
+import AddAccountModal, { AccountFormData } from '../../components/addAccountModal';
+
+type CustomerDTO = {
+  id?: string;
+  fullName?: string;
+  email: string;
+  phone?: string;
+  address: string;
+  date_of_registration?: string;
+  lastLogin: string;
+  status: string;
+  profileImage: string | null;
+  totalBalance: number;
+  monthlyContribution: number;
+  dailyRate: string;
+  id_card?: string;
+  next_of_kin?: string;
+  gender?: string;
+  account_number?: string;
+  city?: string;
+  registered_by?: string;
+  date_of_birth?: string;
+  customer_id?: string;
+};
+
 
 const CustomerDetailsPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedAccount, setSelectedAccount] = useState('all');
   const [transactionFilter, setTransactionFilter] = useState('all');
-  const { fetchCustomerById, customer } = useCustomers();
-  const { accounts, refreshAccounts} = useAccounts();
+   const [showAddModal, setShowAddModal] = useState(false); 
+    const [editingClient, setEditingClient] = useState<Customer | null>(null);
+    const { fetchCustomerById, editCustomer, addCustomer, refreshCustomers, deleteCustomer, customer, customerLoading } = useCustomers();
+  const { accounts, refreshAccounts, addAccount } = useAccounts();
   const { fetchCustomerTransactions, customerTransactions } = useTransactions();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
  const { id } = useParams();
 
-   useEffect(() =>{
-    // Fetch customer details using the id from params
-    console.log("Customer ID from URL:", id);
-    fetchCustomerById(id || '');
-    refreshAccounts(id || '');
-    fetchCustomerTransactions(id || '');
-   }, [id]);
+ useEffect(() => {
+  let mounted = false;
+
+  const fetchData = async () => {
+    if (mounted) return; // prevent double execution
+    mounted = true;
+
+    const toastId = toast.loading("Fetching data for customer ....");
+
+    await fetchCustomerById(id || '');
+    await refreshAccounts(id || '');
+    await fetchCustomerTransactions(id || '');
+
+    toast.success("Done", { id: toastId });
+  };
+
+  if (id) {
+    fetchData();
+  }
+}, [id]);
+
+
 
   // Mock customer data - replace with your actual data fetching
   const customerData = {
@@ -51,8 +100,17 @@ const CustomerDetailsPage = () => {
     email: customer?.email || 'N/A',
     phone: customer?.phone_number,
     address: `${customer?.city} - ${customer?.location}`,
-    dateJoined: customer?.date_of_registration,
+    date_of_registration: customer?.date_of_registration,
     lastLogin: '2024-09-20',
+    date_of_birth: customer?.date_of_birth,
+    account_number: customer?.account_number,
+    gender: customer?.gender,
+    registered_by: customer?.registered_by,
+    id_card: customer?.id_card,
+    staff_name: customer?.registered_by_name,
+    next_of_kin: customer?.next_of_kin,
+    customer_id: customer?.id,
+    city: customer?.city,
     status: 'Active',
     profileImage: null,
     totalBalance: accounts.reduce((sum, acc) => Number(sum) + Number(acc.balance), 0),
@@ -69,6 +127,35 @@ const CustomerDetailsPage = () => {
   .reduce((sum, txn) => Number(sum) + Number(txn.amount), 0),
     dailyRate: customer?.daily_rate || 'N/A',
   };
+
+    const toCustomer = (dto: CustomerDTO): Customer => ({
+    id: dto.id ?? crypto.randomUUID(),
+    name: dto.fullName ?? "",
+    date_of_registration: dto.date_of_registration ?? new Date().toISOString(),
+    id_card: dto.id_card,
+    gender: dto.gender,
+    email: dto.email,
+    phone_number: dto.phone,
+    next_of_kin: dto.next_of_kin,
+    location: dto.address,
+    daily_rate: dto.dailyRate,
+    company_id: "some-company-id",
+    registered_by: dto.registered_by,
+    created_at: dto.lastLogin,
+    date_of_birth: dto.date_of_birth,
+    customer_id: dto.customer_id,
+    city: dto.city,
+    account_number: dto.account_number,
+    is_deleted: false,
+    deleted_at: null,
+  });
+
+
+  const handleEditClient = (updatedClient: Customer) => {
+      editCustomer(updatedClient);
+      refreshCustomers();
+      !customerLoading ? setEditingClient(null) : null;
+    };
 
   const getTransactionIcon = (type) => {
     switch (type) {
@@ -113,6 +200,30 @@ const CustomerDetailsPage = () => {
     return true;
   });
 
+  const handleAddAccount = async (accountData: Account) => {
+    setIsLoading(true);
+    
+    const toastId = toast.loading('Adding account...');
+    try {
+      console.log('Creating account:', accountData);
+     
+      const addAccountRes = await addAccount(accountData);
+      console.log(`Creating account for: ${accountData}`);
+      console.log(`Adding account boolean: ${addAccountRes}`)
+      if(addAccountRes===true){
+        setIsAddModalOpen(false);
+        refreshAccounts(accountData.customer_id || '');
+        toast.success('Account added successfully', {id: toastId});
+      }
+    } catch (error) {
+      console.error('Error creating account:', error);
+      toast.error(`${error}`, {id: toastId});
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -133,16 +244,22 @@ const CustomerDetailsPage = () => {
                     {customerData.status}
                   </span>
                   <span className="text-sm text-gray-500">
-                    Member since {formatDate(customerData.dateJoined)}
+                    Member since {formatDate(customerData.date_of_registration)}
                   </span>
                 </div>
               </div>
             </div>
             <div className="flex space-x-3">
-              <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+             {
+              userPermissions.CUSTOMER_CREATE && (
+                 <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                 onClick={() => setEditingClient(toCustomer(customerData))}
+                 >
                 <Edit3 className="w-4 h-4" />
                 <span>Edit Customer</span>
               </button>
+              )
+             }
               <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 <Download className="w-4 h-4" />
                 <span>Export Data</span>
@@ -299,10 +416,16 @@ const CustomerDetailsPage = () => {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Customer Accounts</h3>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              {
+                userPermissions.ALTER_ACCOUNT && (
+                  <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={() => setIsAddModalOpen(true)}
+                  >
                 <CreditCard className="w-4 h-4" />
                 <span>Add Account</span>
               </button>
+                )
+              }
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {accounts.map((account) => (
@@ -318,7 +441,7 @@ const CustomerDetailsPage = () => {
                     </span>
                   </div>
                   <h4 className="text-lg font-semibold text-gray-900 mb-2">{account.name}</h4>
-                  <p className="text-sm text-gray-600 mb-4">{account.account_type}</p>
+                  <p className="text-sm text-gray-600 mb-4">{account.account_type.charAt(0).toUpperCase() + account.account_type.slice(1)}</p>
                   <p className='text-[10px] text-gray-400'>ID {account.id}</p>
                   <div className="space-y-2">
                     <div className="flex justify-between">
@@ -476,7 +599,7 @@ const CustomerDetailsPage = () => {
                   <Calendar className="w-5 h-5 text-gray-600" />
                   <div>
                     <p className="text-sm text-gray-600">Date Joined</p>
-                    <p className="font-medium text-gray-900">{formatDate(customerData.dateJoined)}</p>
+                    <p className="font-medium text-gray-900">{formatDate(customerData.date_of_registration)}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -507,6 +630,30 @@ const CustomerDetailsPage = () => {
           </div>
         )}
       </div>
+
+       {/* Add/Edit Client Modal */}
+            {(showAddModal || editingClient) && (
+              <ClientModal
+                account={{} as Account}
+                client={editingClient}
+                onSave={handleEditClient}
+                onClose={() => {
+                  setShowAddModal(false);
+                  setEditingClient(null);
+                }}
+              />
+            )}
+
+          {/* Add Account Modal */}
+      <AddAccountModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddAccount}
+        customer={customer ? customer : {} as Customer}
+        // customers={mockCustomers}
+        isLoading={isLoading}
+      />
+
     </div>
   );
 };

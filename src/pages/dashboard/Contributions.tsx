@@ -71,7 +71,7 @@ const Contributions: React.FC = () => {
 
   // Calculate filtered stats
   const filteredStats = useMemo(() => {
-    const completedTransactions = filteredContributions.filter(c => c.status === 'completed' || c.status === 'approved');
+    const completedTransactions = filteredContributions.filter(c => c.status === 'completed');
     const pendingTransactions = filteredContributions.filter(c => c.status === 'pending');
     const depositTransactions = filteredContributions.filter(c => c.type === 'deposit');
     
@@ -210,7 +210,7 @@ const Contributions: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Completed Amount</p>
+              <p className="text-sm text-gray-600">Overall received deposits</p>
               <p className="text-2xl font-bold text-green-600">¢{filteredStats.totalAmount.toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-1">{filteredStats.completedCount} transactions</p>
             </div>
@@ -223,8 +223,8 @@ const Contributions: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Deposits</p>
-              <p className="text-2xl font-bold text-blue-600">¢{filteredStats.totalDeposits.toLocaleString()}</p>
+              <p className="text-sm text-gray-600">Total amounts due</p>
+              <p className="text-2xl font-bold text-blue-600">¢{stats?.totalBalance.toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-1">Filtered period</p>
             </div>
             <div className="bg-blue-100 p-3 rounded-lg">
@@ -466,7 +466,7 @@ const Contributions: React.FC = () => {
           transaction={editingTransaction}
           onSave={editingTransaction ? handleEditTransaction : handleAddTransaction}
           onClose={() => {
-            setShowTransactionModal(false);
+            setShowAddModal(false);
             setEditingTransaction(null);
           }}
         />

@@ -133,7 +133,7 @@ const Reports = () => {
         {[
           { label: 'Total Clients', value: totalClients, detail: `${activeClients} active`, icon: Users, color: 'indigo', bg: 'indigo-100' },
           { label: 'Overall Contributions', value: `${totalContributions.toLocaleString()}`, detail: '↑ Growth', icon: PiggyBank, color: 'green', bg: 'green-100' },
-          { label: 'Current Balance', value: `${totalBalance.toLocaleString()}`, detail: 'Available', icon: TrendingUp, color: 'blue', bg: 'blue-100' },
+          { label: 'Current Balance Due', value: `${totalBalance.toLocaleString()}`, detail: 'Available', icon: TrendingUp, color: 'blue', bg: 'blue-100' },
           { label: 'Total Withdrawals', value: `${totalWithdrawals.toLocaleString()}`, detail: 'Completed', icon: Download, color: 'orange', bg: 'orange-100' }
         ].map((metric, idx) => (
           <div key={idx} className="bg-white rounded-xl shadow-sm border p-6">

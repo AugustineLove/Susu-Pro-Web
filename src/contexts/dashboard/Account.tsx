@@ -1,19 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
-// Account interface (adjust to match your actual account structure)
-interface Account {
-  id: string;
-  account_number: string;
-  account_type: string;
-  balance: number;
-  created_at: string;
-  customer_id: string;
-  // Add more fields as needed
-}
+import { Account } from '../../data/mockData';
 
 interface AccountsContextType {
   accounts: Account[];
   loading: boolean;
+  addAccount: (newAccount: Omit<Account, 'id' | 'created_at'>) => Promise<boolean>;
   refreshAccounts: (customerId: string) => void;
   setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
 }
@@ -52,8 +43,28 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const addAccount = async(newAccount: Omit<Account, 'id' | 'created_at'>)=>{
+      try {
+        console.log('Adding account for customer');
+        const res = await fetch('https://susu-pro-backend.onrender.com/api/accounts/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json'},
+          body: JSON.stringify(newAccount),
+        });
+        if (res.ok){
+          const added = await res.json();
+          console.log('Added account', added);
+          return true;
+        }  
+        return false;
+      } catch (error) {
+        console.log('Error: ', error);
+        return false;
+      }
+    }
+
   return (
-    <AccountsContext.Provider value={{ accounts, loading, refreshAccounts: fetchAccounts, setAccounts }}>
+    <AccountsContext.Provider value={{ accounts, loading, refreshAccounts: fetchAccounts, addAccount, setAccounts }}>
       {children}
     </AccountsContext.Provider>
   );

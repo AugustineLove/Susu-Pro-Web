@@ -36,11 +36,34 @@ interface ClientModalProps {
 
 export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSave, onClose }) => {
   const { staffList, loading: staffLoading } = useStaff();
-  const { customers, addCustomer, loading } = useCustomers();
+  const { customers, addCustomer, customerLoading } = useCustomers();
   const { company } = useAuth();
   const [startedAdding, setStartedAdding] = useState(false);
   const companyId = getEffectiveCompanyId();
   const [formData, setFormData] = useState({
+    name: client?.name || '',
+    email: client?.email || '',
+    phone_number: client?.phone_number || '',
+    account_number: client?.account_number || '',
+    city: client?.city || '',
+    id_card: client?.id_card || '',
+    gender: client?.gender
+  ? client.gender.charAt(0).toUpperCase() + client.gender.slice(1)
+  : '',
+    next_of_kin: client?.next_of_kin || '',
+    location: client?.location || '',
+    daily_rate: client?.daily_rate || '',
+    date_of_registration: client?.date_of_registration
+  ? client.date_of_registration.split('T')[0]
+  : new Date().toISOString().split('T')[0],
+  date_of_birth: client?.date_of_birth ? client.date_of_birth.split('T')[0] : new Date().toISOString().split('T')[0],
+    registered_by: client?.registered_by || '',
+    account_type: account?.account_type || '',
+    company_id: companyId,
+    created_by: client?.registered_by
+  });
+
+  console.log(`Editing client body ${JSON.stringify({
     name: client?.name || '',
     email: client?.email || '',
     phone_number: client?.phone_number || '',
@@ -56,8 +79,9 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
     registered_by: client?.registered_by || '',
     account_type: account?.account_type || '',
     company_id: companyId,
+    customer_id: client?.customer_id,
     created_by: client?.registered_by
-  });
+  })}`)
 
   // Filter staff to get only Mobile Bankers
   const mobileBankers = staffList.filter(staff => staff.role === 'Mobile Banker' || staff.role === 'mobile banker');
@@ -118,11 +142,13 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
       onClose();
     } else {
       onSave({
+        customer_id: client?.customer_id,
         ...formData,
         id: Date.now().toString(),
         joinDate: new Date().toISOString().split('T')[0]
       });
       setStartedAdding(false);
+      onClose();
     }
   };
 
@@ -413,17 +439,25 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
               onClick={handleSubmit}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg"
             >
-              {client 
-                  ? 'Update Client' 
-                  : loading || startedAdding ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Adding client...
-                      </div>
-                    ) : (
-                      'Add Client'
-                    )
-                }
+             {client ? (
+                customerLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Updating client...
+                  </div>
+                ) : (
+                  "Update Client"
+                )
+              ) : (
+                customerLoading || startedAdding ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Adding client...
+                  </div>
+                ) : (
+                  "Add Client"
+                )
+              )}
             </button>
           </div>
         </div>

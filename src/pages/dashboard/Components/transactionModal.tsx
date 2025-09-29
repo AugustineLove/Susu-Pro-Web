@@ -75,7 +75,7 @@ interface TransactionModalProps {
 }
 
 const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave, onClose }) => {
-  const { customers, loading: customersLoading, refreshCustomers } = useCustomers();
+  const { customers, customerLoading: customersLoading, refreshCustomers } = useCustomers();
   const { staffList, loading: staffLoading } = useStaff();
   const { accounts, refreshAccounts, setAccounts } = useAccounts();
     const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
@@ -418,7 +418,7 @@ const filteredCustomers = customers.filter(customer =>
                                     ? 'text-emerald-700' 
                                     : 'text-gray-500'
                                 }`}>
-                                  {account.account_type} Account
+                                  {account.account_type.charAt(0).toUpperCase() + account.account_type.slice(1)} Account
                                 </div>
                               </div>
                             </div>

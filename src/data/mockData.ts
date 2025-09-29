@@ -15,6 +15,13 @@ export interface Company {
   name: string;
   email: string;
   createdAt?: any;
+  two_factor_enabled?: boolean;
+  companyName?: string;
+  staffName?: string;
+  address?: string;
+  phone?: string;
+  parentCompanyEmail?: string;
+  parentPhone?: string;
 };
 
 
@@ -26,6 +33,25 @@ export interface Account {
   balance: Number;
   company_id: string;
   created_by: string;
+  account_number?: string;
+
+  // Susu specific
+  susuAmount?: number;
+  frequency?: 'daily' | 'weekly' | 'monthly';
+  susuDuration?: number; // in months
+  startDate?: string;
+  daily_rate?: number;
+  // Savings specific
+  initial_deposit?: number;
+  minimumBalance?: number;
+  interestRate?: number;
+  // Loan specific
+  loanAmount?: number;
+  interestRateLoan?: number;
+  loanTerm?: number; // in months
+  collateral?: string;
+  guarantor?: string;
+
 }
 
 export interface Customer {
@@ -33,7 +59,7 @@ export interface Customer {
   name: string;
   email: string;
   phone_number: string;
-  account_number: string;
+  account_number?: string;
   address: string;
   registered_by_name?: string;
   created_at: string; 
@@ -50,6 +76,8 @@ export interface Customer {
   city?: string;
   company_id?: string;
   registered_by: string;
+  parentPhone?: string;
+  customer_id?: string;
 }
 
 export interface Transaction {
@@ -126,6 +154,18 @@ export interface Expense {
   id: string;
   type: string;
   description: string;
+  amount: number;
+  category: string;
+  date: string;
+  status: 'pending' | 'approved' | 'rejected';
+  receipt?: string;
+  recorded_by?: string;
+}
+export interface Payment {
+  id: string;
+  type: string;
+  description: string;
+  method: string;
   amount: number;
   category: string;
   date: string;

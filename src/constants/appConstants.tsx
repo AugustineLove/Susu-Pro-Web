@@ -15,9 +15,19 @@ export const getEffectiveCompanyId = () => {
   return null;
 };
 
+export const getUserPermissions = () =>{
+  if (!user) return null;
+  return user.permissions;
+}
+
 export const getUserRole = () => {
   if (!user) return null;
   return user.type === "company" ? "admin" : user.role;
+}
+
+export const getUserUUID = () => {
+  if (!user) return null;
+  return user.id;
 }
 export const getDisplayName = () => {
   if (!user) return null;
@@ -43,3 +53,5 @@ export function formatDate(dateString: string, locale: string = "en-US"): string
 export const companyId = getEffectiveCompanyId();
 export const companyName = getDisplayName();
 export const userRole = getUserRole();
+export const userPermissions = getUserPermissions();
+export const userUUID = getUserUUID();

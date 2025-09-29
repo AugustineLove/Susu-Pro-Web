@@ -178,7 +178,7 @@ const LoanManagement = () => {
     }
   ];
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status?: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-700';
       case 'overdue': return 'bg-red-100 text-red-700';
@@ -192,7 +192,7 @@ const LoanManagement = () => {
     }
   };
 
-  const getRiskColor = (risk) => {
+  const getRiskColor = (risk?: string) => {
     switch (risk) {
       case 'low': return 'text-green-600';
       case 'medium': return 'text-yellow-600';
@@ -201,7 +201,7 @@ const LoanManagement = () => {
     }
   };
 
-  const getLoanTypeIcon = (type) => {
+  const getLoanTypeIcon = (type?: string) => {
     switch (type) {
       case 'Business Loan': return <Briefcase size={16} />;
       case 'Personal Loan': return <User size={16} />;

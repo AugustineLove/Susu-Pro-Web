@@ -1,37 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Account } from '../../data/mockData';
-import { companyId, getEffectiveCompanyId } from '../../constants/appConstants';
+import { Account, Customer } from '../../data/mockData';
+import { companyId, getEffectiveCompanyId, userPermissions } from '../../constants/appConstants';
+import toast from 'react-hot-toast';
 
-// Define the customer structure
-export interface Customer {
-  company_id?: string;
-  account_number?: string;
-  id: string;
-  name: string;
-  email: string;
-  phone_number: string;
-  address: string;
-  registered_by_name?: string;
-  created_at: string; // ISO date string
-  location: string; // Optional field
-  daily_rate: string;
-  total_balance: string;
-  total_transactions: string;
-  id_card?: string; 
-  next_of_kin?: string;
-  date_of_registration?: string; 
-  gender?: string; // Optional field
-  registered_by: string;
-  customer_id?: string;
-  total_balance_across_all_accounts?: string; // Optional field for total balance across all accounts
-
-  // Add other fields if needed
-}
 
 interface CustomersContextType {
   customers: Customer[];
   customer?: Customer;
-  loading: boolean;
+  customerLoading: boolean;
+  editCustomer: (updatedCustomer: Omit<Customer, 'id' | 'created_at'>) => Promise<void>;
   fetchCustomerById: (customerId: string) => Promise<void>;
   refreshCustomers: () => Promise<void>;
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
@@ -51,11 +28,13 @@ export const useCustomers = () => {
 
 export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [customerLoading, setCustomerloading] = useState(true);
   const [customer, setCustomer] = useState<Customer>();
 
   const fetchCustomers = async () => {
-    setLoading(true);
+    setCustomerloading(true);
+    console.log(`User permissions: ${JSON.stringify(userPermissions)}`)
+    console.log(userPermissions.MANAGE_STAFF);
     try {
 
       if (!companyId) {
@@ -76,12 +55,12 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch (err) {
       console.error('Error fetching customers:', err);
     } finally {
-      setLoading(false);
+      setCustomerloading(false);
     }
   };
 
   const fetchCustomerById = async (customerId?: string) => {
-    setLoading(true);
+    setCustomerloading(true);
     try{
       const res = await fetch(`https://susu-pro-backend.onrender.com/api/customers/${customerId}`);
       if (res.ok){
@@ -92,7 +71,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch(error){
       console.log(error);
     } finally {
-      setLoading(false);
+      setCustomerloading(false);
     }
   }
 
@@ -114,6 +93,34 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.log('Error: ', error);
     }
   }
+
+ const editCustomer = async (
+  updatedCustomer: Omit<Customer, 'id' | 'created_at'>
+) => {
+  setCustomerloading(true);
+  try {
+    const toastId = 'Editing customer...'
+    const res = await fetch(`https://susu-pro-backend.onrender.com/api/customers/customer`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedCustomer),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to update customer: ${res.statusText}`);
+    }
+    toast.success('Customer details edited', {id: toastId});
+    setCustomerloading(false);
+    const data = await res.json();
+    return data; // the updated customer object from backend
+  } catch (error) {
+    console.error('Error updating customer:', error);
+    throw error;
+  }
+};
+
 
   const addCustomer = async (newCustomer: Omit<Customer, 'id' | 'created_at'>, account_type:string) => {
     const companyId = getEffectiveCompanyId();
@@ -181,7 +188,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   return (
-    <CustomersContext.Provider value={{ customers, customer, loading, refreshCustomers: fetchCustomers, fetchCustomerById, setCustomers, addCustomer, deleteCustomer  }}>
+    <CustomersContext.Provider value={{ customers, customer, customerLoading, refreshCustomers: fetchCustomers, editCustomer, fetchCustomerById, setCustomers, addCustomer, deleteCustomer  }}>
       {children}
     </CustomersContext.Provider>
   );

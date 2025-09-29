@@ -55,7 +55,6 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       if (json.status === 'success') {
         setTransactions(json.data);
-        console.log(`Fetched transactions: ${JSON.stringify(json.data)}`);
         } else {
         console.error('Failed to fetch transactions:', json.message);
       }
