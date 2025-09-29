@@ -7,7 +7,6 @@ import { companyId } from "../../constants/appConstants";
 type FinanceContextType ={
   data: {
     expenses: Expense[];
-    payments: Payment[];
     assets: Asset[];
     budgets: Budget[];
     totalCommission?: number;
@@ -51,8 +50,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
       if (json.status === "success") {
         setData(json.data);
       }
-      console.log('Fetched financial data:', json);
-    } catch (err) {
+      } catch (err) {
       console.error("Failed to fetch financials:", err);
     }
   };

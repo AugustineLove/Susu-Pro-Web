@@ -72,8 +72,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const json = await res.json();
       if (json.status === 'success') {
         setCustomerTransactions(json.data);
-        console.log(`Fetched customer transactions: ${json.data}`);
-      } else {
+        } else {
         console.error('Failed to fetch customer transactions:', json.message);
       }
     } catch (error) {

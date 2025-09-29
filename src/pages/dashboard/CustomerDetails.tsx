@@ -69,7 +69,7 @@ const CustomerDetailsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   
  const { id } = useParams();
-
+ 
  useEffect(() => {
   let mounted = false;
 
@@ -127,6 +127,7 @@ const CustomerDetailsPage = () => {
   .reduce((sum, txn) => Number(sum) + Number(txn.amount), 0),
     dailyRate: customer?.daily_rate || 'N/A',
   };
+
 
     const toCustomer = (dto: CustomerDTO): Customer => ({
     id: dto.id ?? crypto.randomUUID(),
