@@ -34,7 +34,7 @@ const DashboardLayout: React.FC = () => {
       : []),
     { name: 'Reports', href: '/dashboard/reports', icon: FileText },
     // { name: 'Staffs', href: '/dashboard/staffs', icon: Users },
-    { name: 'Loans', href: '/dashboard/loans', icon: CreditCard },
+    // { name: 'Loans', href: '/dashboard/loans', icon: CreditCard },
     { name: 'Chat', href: '/dashboard/chat', icon: Chat },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
