@@ -119,7 +119,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const deleteTransaction = async (transactionId: string) => {
     try {
       console.log(`Deleting transaction id: ${transactionId}`);
-      const res = await fetch(`http://localhost:5000/api/transactions/${transactionId}`,{
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/${transactionId}`,{
         method: 'DELETE',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
