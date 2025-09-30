@@ -101,7 +101,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get Mobile Bankers
-  const mobileBankers = staffList.filter(staff => staff.role === 'Mobile Banker' || staff.role === 'mobile banker');
+  const mobileBankers = staffList.filter(staff => staff.role === 'Mobile Banker' || staff.role === 'mobile banker' || staff.role === 'mobile_banker');
 
   // Filter customers based on search
 const filteredCustomers = customers.filter(customer =>
