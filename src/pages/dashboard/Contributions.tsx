@@ -143,10 +143,12 @@ const Contributions: React.FC = () => {
       setSelectedTransaction('');
       await refreshCustomers();
       toast.success("Transaction deleted successfully", {id: toastId})
+      setIsDeleting(false);
       }
       
     } catch (error) {
-      
+      console.log(error);
+      setIsDeleting(false);
     }
   }
 
