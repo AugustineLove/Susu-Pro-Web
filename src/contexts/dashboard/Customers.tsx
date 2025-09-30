@@ -64,7 +64,6 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const res = await fetch(`https://susu-pro-backend.onrender.com/api/customers/${customerId}`);
       if (res.ok){
         const data = await res.json();
-        console.log(`Customer data ${JSON.stringify(data)}`);
         setCustomer(data.data);
       }
     } catch(error){

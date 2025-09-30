@@ -1,10 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Calendar, Filter, Download, PiggyBank, Eye, User } from 'lucide-react';
+import { Search, Plus, Trash2, Calendar, Filter, Download, PiggyBank, Eye, User } from 'lucide-react';
 import { mockContributions, mockClients, Contribution, Transaction } from '../../data/mockData';
 import { useTransactions } from '../../contexts/dashboard/Transactions';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
 import { TransactionModal } from './Components/transactionModal';
 import { useStaff } from '../../contexts/dashboard/Staff';
+import DeleteTransactionModal from '../../components/deleteTransactionModal';
+import toast from 'react-hot-toast';
+import { useCustomers } from '../../contexts/dashboard/Customers';
 
 const Contributions: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,10 +20,13 @@ const Contributions: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  
-  const { transactions } = useTransactions();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState('');
+  const [isDeleteTransactionModal, setisDeletTransactionModal] = useState(false);
+  const { transactions, deleteTransaction } = useTransactions();
   const { stats } = useStats();
   const { staffList } = useStaff();
+  const { refreshCustomers } = useCustomers();
 
   // Enhanced filtering with staff and custom date range
   const filteredContributions = useMemo(() => {
@@ -118,6 +124,32 @@ const Contributions: React.FC = () => {
     setEditingTransaction(null);
   };
 
+  const handleDeleteClick = async (transaction_id: string) => {
+    setSelectedTransaction(transaction_id);
+    setisDeletTransactionModal(true);
+  }
+  const handleDeleteCancel = () => {
+    setSelectedTransaction('');
+    setisDeletTransactionModal(false);
+  }
+  const handleDeleteConfirm = async (transactionId: string) => {
+    setIsDeleting(true);
+    const toastId = toast.loading("Deleting transaction...")
+    try {
+      console.log(`Transaction: ${transactionId}`)
+      const res = await deleteTransaction(transactionId);
+      if (res){
+      setisDeletTransactionModal(false);
+      setSelectedTransaction('');
+      await refreshCustomers();
+      toast.success("Transaction deleted successfully", {id: toastId})
+      }
+      
+    } catch (error) {
+      
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -159,7 +191,10 @@ const Contributions: React.FC = () => {
     }
   };
 
-  console.log(`Staff list: ${JSON.stringify(staffList)}`);
+  const getTransactionTypeColor = (type: string) => {
+    return type === 'withdrawal'
+    ? 'text-red-500' : 'text-green-500';
+  }
 
   const getStaffName = (staffId: string) => {
     const staff = staffList.find(s => s.id === staffId);
@@ -174,7 +209,7 @@ const Contributions: React.FC = () => {
     setStartDate('');
     setEndDate('');
   };
-
+  
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -377,9 +412,7 @@ const Contributions: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Client
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Staff
-                </th>
+               
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Amount
                 </th>
@@ -387,13 +420,16 @@ const Contributions: React.FC = () => {
                   Date
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Method
+                  Type
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Notes
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -407,20 +443,14 @@ const Contributions: React.FC = () => {
                           <span className="text-indigo-600 font-medium text-sm">
                             {contribution.customer_name.split(' ').map(n => n[0]).join('')}
                           </span>
-                        </div>
+                          </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">{contribution.customer_name}</div>
+                         <div className='text-xs text-gray-400'>{contribution.staff_name ? getStaffName(contribution.staff_id) : 'Unassigned'}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <User className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-900">
-                          {contribution.staff_name ? getStaffName(contribution.staff_id) : 'Unassigned'}
-                        </span>
-                      </div>
-                    </td>
+                   
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-lg font-semibold text-gray-900">
                         ¢{contribution.amount.toLocaleString()}
@@ -430,8 +460,8 @@ const Contributions: React.FC = () => {
                       {new Date(contribution.transaction_date).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getMethodColor(contribution.method || contribution.status)}`}>
-                        {formatMethod(contribution.method || contribution.status)}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTransactionTypeColor(contribution.type || contribution.status)}`}>
+                        {formatMethod(contribution.type || contribution.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -441,6 +471,15 @@ const Contributions: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                       {contribution.description || '-'}
+                    </td>
+                    <td>
+                        <button
+                            onClick={() => handleDeleteClick(contribution.transaction_id)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                            title="Delete customer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                     </td>
                   </tr>
                 ))
@@ -471,6 +510,18 @@ const Contributions: React.FC = () => {
           }}
         />
       )}
+
+       {/* Delete Modal */}
+      {isDeleteTransactionModal && (
+        <DeleteTransactionModal
+          transaction_id={selectedTransaction}
+          isOpen={isDeleteTransactionModal}
+          onClose={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+          isLoading={isDeleting}
+        />
+      )}
+
     </div>
   );
 };

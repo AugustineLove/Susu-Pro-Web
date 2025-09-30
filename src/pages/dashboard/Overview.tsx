@@ -214,8 +214,7 @@ const Overview: React.FC = () => {
                     {/* Staff Name */}
                     <div className="hidden sm:block text-center text-xs text-gray-600 ">
                       <p className="text-[10px] text-gray-400">Status</p>
-                      <p className={`font-medium p-1 rounded-5 ${getStatusColor(transaction.status)}`}>{transaction.status}</p>
-                      
+                      <p className={`font-medium p-1 rounded-5 ${getStatusColor(transaction.status)}`}>{transaction.status}</p>   
                     </div>
 
                     {/* Amount & Type */}

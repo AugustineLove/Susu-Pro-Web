@@ -26,15 +26,12 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const fetchAccounts = async (customerId: string) => {
     setLoading(true);
     try {
-        console.log('Fetching accounts for customer ID:', customerId);
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/accounts/customer/${customerId}`);
+        const res = await fetch(`https://susu-pro-backend.onrender.com/api/accounts/customer/${customerId}`);
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Failed to fetch accounts:', errorText);
         return;
       }
       const data = await res.json();
-      console.log('Fetched accounts:', data);
       setAccounts(data.data);
     } catch (error) {
       console.error('Error fetching accounts:', error);

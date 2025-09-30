@@ -23,6 +23,7 @@ type TransactionContextType = {
   transactions: TransactionType[];
   customerTransactions: TransactionType[];
   loading: boolean;
+  deleteTransaction: (customerId: string) => Promise<boolean>;
   fetchCustomerTransactions: (customerId: string) => Promise<void>;
   refreshTransactions: () => Promise<void>;
   addTransaction: (newTransaction: Omit<Transaction, 'id' | 'created_at'>) => Promise<boolean | undefined>;
@@ -115,6 +116,32 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const deleteTransaction = async (transactionId: string) => {
+    try {
+      console.log(`Deleting transaction id: ${transactionId}`);
+      const res = await fetch(`http://localhost:5000/api/transactions/${transactionId}`,{
+        method: 'DELETE',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          'company_id': companyId,
+        })
+      });
+      if(res.ok){
+        const deleted = await res.json();
+        console.log(`Deleted transaction response: ${JSON.stringify(deleted)}`);
+        await fetchTransactions();
+        return true;
+      } else{
+        const errorText = await res.text();
+        console.error(`Failed to delete transaction: ${errorText}`)
+        return false;
+      }
+    } catch (error) {
+      console.log('Error deleting transaction: ', error)
+      return false;
+    }
+  }
+
   const sendMessage = async (messageData: {}) => {
     try {
       const res = await fetch('https://susu-pro-backend.onrender.com/api/messages/send-customer', {
@@ -199,7 +226,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <TransactionContext.Provider value={{ transactions, customerTransactions, loading, refreshTransactions: fetchTransactions, addTransaction, approveTransaction, fetchCustomerTransactions, rejectTransaction }}>
+    <TransactionContext.Provider value={{ transactions, customerTransactions, loading, refreshTransactions: fetchTransactions, addTransaction, deleteTransaction, approveTransaction, fetchCustomerTransactions, rejectTransaction }}>
       {children}
     </TransactionContext.Provider>
   );
