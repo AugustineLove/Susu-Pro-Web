@@ -428,7 +428,7 @@ const filteredCustomers = customers.filter(customer =>
                                   ? 'text-emerald-600' 
                                   : 'text-gray-900'
                               }`}>
-                                ¢{account.balance.toLocaleString()}
+                                ¢{account.balance ? account.balance.toLocaleString() : '0'}
                               </div>
                               <div className={`text-xs ${
                                 selectedAccount?.id === account.id 
