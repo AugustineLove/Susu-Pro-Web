@@ -387,3 +387,46 @@ export const BudgetModal = ({ show, onClose, onSubmit, formData, onFormChange, l
   </div>
 );
 
+
+
+export const CommissionModal: React.FC<ModalProps> = ({ show, onClose, onSubmit, formData, onFormChange, loading }) => {
+  if (!show) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <h2 className="text-xl font-semibold mb-1">Add Commission</h2>
+        <p className="text-xs mb-3">Add commission for this transaction</p>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+            <input
+              type="number"
+              required
+              value={formData.amount || ''}
+              onChange={(e) => onFormChange('amount', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="0.00"
+            />
+          </div>
+         
+        </div>
+        <div className="flex space-x-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onSubmit(formData, companyId)}
+            disabled={loading}
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? 'Adding commission...' : 'Add Commission'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

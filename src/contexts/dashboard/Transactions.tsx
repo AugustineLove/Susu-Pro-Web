@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Transaction } from '../../data/mockData';
+import { Commission, Transaction } from '../../data/mockData';
 import { useCustomers } from './Customers';
 import { useStats } from './DashboardStat';
 import { companyId, userRole } from '../../constants/appConstants';
@@ -16,6 +16,7 @@ export type TransactionType = {
   staff_name: string;
   account_type: string;
   status: string;
+  account_id?: string;
   unique_code: string;
 };
 
@@ -23,6 +24,7 @@ type TransactionContextType = {
   transactions: TransactionType[];
   customerTransactions: TransactionType[];
   loading: boolean;
+  deductCommission: (newCommission: Commission) => Promise<boolean>;
   deleteTransaction: (customerId: string) => Promise<boolean>;
   fetchCustomerTransactions: (customerId: string) => Promise<void>;
   refreshTransactions: () => Promise<void>;
@@ -51,16 +53,17 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/all/${companyId}`);
+      const res = await fetch(`http://localhost:5000/api/transactions/all/${companyId}`);
       const json = await res.json();
 
       if (json.status === 'success') {
         setTransactions(json.data);
+        console.log(json.data);
         } else {
         console.error('Failed to fetch transactions:', json.message);
       }
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      console.error('Error fetching transactions:', error); 
     } finally {
       setLoading(false);
     }
@@ -115,6 +118,37 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return false;
     }
   };
+
+  const deductCommission = async (newCommission: Commission) => {
+    const accountId = newCommission.account_id
+    try {
+      setLoading(true)
+      const res = await fetch(`http://localhost:5000/api/transactions/commission/${accountId}`,{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newCommission),
+      });
+      const json = await res.json();
+      console.log('Added commission: ', json);
+      if(json.status === 'success'){
+        await fetchTransactions();
+        await refreshCustomers();
+        await refreshStats();
+        setLoading(false);
+        return true;
+      } else{
+        console.error('Failed to deduct commission: ', json.message);
+        setLoading(false);
+        return false
+      }
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+      return false
+    }
+  }
 
   const deleteTransaction = async (transactionId: string) => {
     try {
@@ -226,7 +260,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <TransactionContext.Provider value={{ transactions, customerTransactions, loading, refreshTransactions: fetchTransactions, addTransaction, deleteTransaction, approveTransaction, fetchCustomerTransactions, rejectTransaction }}>
+    <TransactionContext.Provider value={{ transactions, deductCommission, customerTransactions, loading, refreshTransactions: fetchTransactions, addTransaction, deleteTransaction, approveTransaction, fetchCustomerTransactions, rejectTransaction }}>
       {children}
     </TransactionContext.Provider>
   );

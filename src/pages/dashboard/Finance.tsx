@@ -30,6 +30,7 @@ import { companyId, formatDate, userUUID } from '../../constants/appConstants';
 import { Asset, Budget, Expense } from '../../data/mockData';
 import toast from 'react-hot-toast';
 import { AssetModal, BudgetModal, ExpenseModal, PaymentModal } from '../../components/financeModals';
+import { useCustomers } from '../../contexts/dashboard/Customers';
 
 interface FinanceData{
   expenses: Expense[];
@@ -61,7 +62,7 @@ interface OperationalMetrics {
   runway: number;
 }
 
-interface FormDataState {
+export interface FormDataState {
   name?: string;
   category?: string;
   description?: string;
@@ -86,17 +87,69 @@ interface ModalProps {
   loading: boolean;
 }
 
-// Revenue Modal Component
-const RevenueModal: React.FC<ModalProps> = ({ show, onClose, onSubmit, formData, onFormChange, loading }) => {
+// Revenue Modal Component with Commission Support
+const RevenueModal: React.FC<ModalProps> = ({ 
+  show, 
+  onClose, 
+  onSubmit, 
+  formData, 
+  onFormChange, 
+  loading,
+  companyId 
+}) => {
+  const { customers } = useCustomers();
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+
+  // Fetch customers when modal opens and commission source is selected
+  useEffect(() => {
+    if (show && formData.source === 'commissions') {
+      fetchCustomers();
+    }
+  }, [show, formData.source]);
+
+  const fetchCustomers = async () => {
+    try {
+      setLoadingCustomers(true);
+      const response = await fetch(`http://localhost:5000/api/accounts/company/${companyId}`);
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        setCustomers(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    } finally {
+      setLoadingCustomers(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    // Validate required fields
+    if (!formData.description || !formData.amount) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    // Validate customer selection for commissions
+    if (formData.source === 'commissions' && !formData.customer_id) {
+      alert('Please select a customer for commission deduction');
+      return;
+    }
+
+    onSubmit(formData, companyId);
+  };
+
   if (!show) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-semibold mb-4">Add Revenue</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               required
@@ -106,22 +159,36 @@ const RevenueModal: React.FC<ModalProps> = ({ show, onClose, onSubmit, formData,
               placeholder="Revenue description"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Amount <span className="text-red-500">*</span>
+            </label>
             <input
               type="number"
               required
+              step="0.01"
+              min="0"
               value={formData.amount || ''}
               onChange={(e) => onFormChange('amount', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="0.00"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Source <span className="text-red-500">*</span>
+            </label>
             <select
               value={formData.source || ''}
-              onChange={(e) => onFormChange('source', e.target.value)}
+              onChange={(e) => {
+                onFormChange('source', e.target.value);
+                // Clear customer selection when source changes
+                if (e.target.value !== 'commissions') {
+                  onFormChange('customer_id', '');
+                }
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select source</option>
@@ -132,6 +199,35 @@ const RevenueModal: React.FC<ModalProps> = ({ show, onClose, onSubmit, formData,
               <option value="other">Other</option>
             </select>
           </div>
+
+          {/* Customer Selection - Only visible when commissions is selected */}
+          {formData.source === 'commissions' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Select Customer <span className="text-red-500">*</span>
+              </label>
+              {loadingCustomers ? (
+                <div className="text-sm text-gray-500">Loading customers...</div>
+              ) : (
+                <select
+                  value={formData.customer_id || ''}
+                  onChange={(e) => onFormChange('customer_id', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a customer</option>
+                  {customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.name} - Balance: {customer.total_balance_across_all_accounts}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <p className="text-xs text-gray-600 mt-2">
+                Commission will be deducted from the selected customer's account balance
+              </p>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
             <select
@@ -146,6 +242,7 @@ const RevenueModal: React.FC<ModalProps> = ({ show, onClose, onSubmit, formData,
               <option value="one-time">One-time</option>
             </select>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
             <input
@@ -156,17 +253,18 @@ const RevenueModal: React.FC<ModalProps> = ({ show, onClose, onSubmit, formData,
             />
           </div>
         </div>
+
         <div className="flex space-x-3 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
           <button
-            onClick={() => onSubmit(formData, companyId)}
-            disabled={loading}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            onClick={handleSubmit}
+            disabled={loading || loadingCustomers}
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Adding...' : 'Add Revenue'}
           </button>
@@ -331,12 +429,14 @@ const calculateOperationalMetrics = () => {
     date: new Date().toISOString().split("T")[0],
   };
 
+  
+
   const [expenseFormData, setExpenseFormData] = useState<FormDataState>(defaultExpenseFormData);
   const [assetFormData, setAssetFormData] = useState<FormDataState>(defaultAssetFormData);
   const [budgetFormData, setBudgetFormData] = useState<FormDataState>(defaultBudgetFormData);
   const [paymentFormData, setPaymentFormData] = useState<FormDataState>(defaultPaymentFormData);
   const [revenueFormData, setRevenueFormData] = useState<FormDataState>(defaultRevenueFormData);
-
+  
   // Submit functions
   const submitExpense = async (formData: FormDataState, company_id: string) => {
     try {
@@ -415,6 +515,7 @@ const calculateOperationalMetrics = () => {
       console.log(error);
     }
   };
+
 
   // Enhanced Overview Tab Component
   const OverviewTab = () => {

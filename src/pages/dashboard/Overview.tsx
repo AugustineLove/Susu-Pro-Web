@@ -296,14 +296,14 @@ const Overview: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-gray-900">¢{withdrawal.amount.toLocaleString()}</p>
-                      <div className="flex space-x-2 mt-2">
+                      {/* <div className="flex space-x-2 mt-2">
                         <button onClick={() => {approveTransaction(withdrawal.transaction_id); refreshTransactions(); refreshCustomers();}} className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
                           Approve
                         </button>
                         <button onClick={()=> {rejectTransaction(withdrawal.transaction_id); refreshTransactions(); refreshCustomers();}} className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700">
                           Reject
                         </button>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 ))}
@@ -335,6 +335,8 @@ const Overview: React.FC = () => {
                   }}
                 />
               )}
+
+              
     </div>
   );
 };

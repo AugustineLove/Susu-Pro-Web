@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Search, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react';
-import { mockWithdrawals, Withdrawal } from '../../data/mockData';
+import { Commission, mockWithdrawals, Withdrawal } from '../../data/mockData';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
-import { useTransactions } from '../../contexts/dashboard/Transactions';
+import { TransactionType, useTransactions } from '../../contexts/dashboard/Transactions';
 import { toast } from 'react-hot-toast';
-import { companyName } from '../../constants/appConstants';
+import { companyId, companyName, userUUID } from '../../constants/appConstants';
+import { CommissionModal } from '../../components/financeModals';
+import { FormDataState } from './Finance';
 
 const Withdrawals: React.FC = () => {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>(mockWithdrawals);
@@ -12,8 +14,47 @@ const Withdrawals: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const { stats } = useStats();
   const [isApproving, setIsApproving] = useState(false);
-  const { transactions, approveTransaction, rejectTransaction } = useTransactions();
+  const [showCommissionModal, setShowCommissionModal] = useState(false);
+  const { transactions, approveTransaction, rejectTransaction, deductCommission, loading } = useTransactions();
   const withdrawalTransactions = transactions.filter(tx => tx.type === 'withdrawal');
+  const [commissionData, setCommissionData] = useState<TransactionType>();
+  const defaultCommissionFormData: FormDataState = {
+    amount: 0,
+  }
+  const [commissionFormData, setCommissionFormData] = useState<FormDataState>(defaultCommissionFormData);
+
+ 
+
+  const submitCommission = async (formData: FormDataState) => {
+    const toastId = toast.loading('Adding commission...');
+    try {
+      const { amount } = formData;
+      console.log('Submitting: ', amount)
+      
+      const newCommissionData = {
+        'account_id': commissionData?.account_id,
+        'amount': amount,
+        'created_by': userUUID == companyId ? companyId : userUUID,
+        'created_by_type': userUUID == companyId ? 'company' : 'staff',
+        'company_id': companyId
+       }
+       console.log('New commission data: ', newCommissionData) 
+       const res = await deductCommission(newCommissionData as Commission)
+       if(res){
+          toast.success('Commission added successfully', {id: toastId})
+          setShowCommissionModal(false)
+       }
+       else{
+        toast.error('Error adding commission', {id: toastId})
+        setShowCommissionModal(false)
+       }
+    } catch (error) {
+      toast.error('Failed to add commission', {id: toastId})
+      setShowCommissionModal(false)
+    }
+  }
+
+
   // Filter withdrawals
   const filteredWithdrawals = withdrawalTransactions.filter(withdrawal => {
     const matchesSearch = withdrawal.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -70,14 +111,13 @@ const makeSuSuProName = (companyName: string) => {
    try {
   const approvalSuccess = await approveTransaction(withdrawaId, {
     messageTo: customerPhone,
-    message: `Hello ${customerName} you have withdrawn an amount of GHS${withdrawalAmount}.00.`,
+    message: `Hello ${customerName} you have withdrawn an amount of GHS${withdrawalAmount}`,
     messageFrom: makeSuSuProName(companyName),
   });
 
-  console.log("Approval status", approvalSuccess);
-
   if (approvalSuccess) {
     toast.success("Transaction approved successfully!", { id: toastId });
+    setShowCommissionModal(true);
   } else {
     toast.error("Failed to approve transaction", {id: toastId });
   }
@@ -291,7 +331,10 @@ const makeSuSuProName = (companyName: string) => {
                     {withdrawal.status === 'pending' ? (
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleApproveClick(withdrawal.transaction_id, withdrawal.customer_phone, withdrawal.customer_name, withdrawal.amount.toLocaleString())}
+                          onClick={()=>{
+                            handleApproveClick(withdrawal.transaction_id, withdrawal.customer_phone, withdrawal.customer_name, withdrawal.amount.toLocaleString())
+                            setCommissionData(withdrawal);
+                          }}
                           className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
                         >
                           Approve
@@ -343,6 +386,21 @@ const makeSuSuProName = (companyName: string) => {
           </p>
         </div>
       )}
+
+      {
+        (showCommissionModal) && (
+          <CommissionModal 
+            show={showCommissionModal}
+            onClose={() => setShowCommissionModal(false)}
+            onSubmit={submitCommission}
+            formData={commissionFormData}
+            onFormChange={(field, value) =>
+            setCommissionFormData(prev => ({ ...prev, [field]: value }))
+          }
+          loading={loading}
+          />
+        )
+      }
     </div>
   );
 };

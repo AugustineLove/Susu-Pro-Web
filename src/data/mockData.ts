@@ -24,6 +24,13 @@ export interface Company {
   parentPhone?: string;
 };
 
+export interface Commission {
+  account_id: string;
+  amount: number;
+  created_by: string;
+  created_by_type: string;
+  company_string: string;
+}
 
 export interface Account {
   id: string;
