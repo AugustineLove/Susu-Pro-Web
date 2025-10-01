@@ -110,7 +110,7 @@ const RevenueModal: React.FC<ModalProps> = ({
   const fetchCustomers = async () => {
     try {
       setLoadingCustomers(true);
-      const response = await fetch(`http://localhost:5000/api/accounts/company/${companyId}`);
+      const response = await fetch(`https://susu-pro-backend.onrender.com/api/accounts/company/${companyId}`);
       const data = await response.json();
       
       if (data.status === 'success') {

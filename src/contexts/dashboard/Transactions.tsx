@@ -53,7 +53,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/transactions/all/${companyId}`);
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/all/${companyId}`);
       const json = await res.json();
 
       if (json.status === 'success') {
@@ -123,7 +123,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const accountId = newCommission.account_id
     try {
       setLoading(true)
-      const res = await fetch(`http://localhost:5000/api/transactions/commission/${accountId}`,{
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/commission/${accountId}`,{
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
