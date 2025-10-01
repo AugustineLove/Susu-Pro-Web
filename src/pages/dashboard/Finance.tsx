@@ -22,15 +22,18 @@ import {
   Percent,
   Calculator,
   LineChart,
-  Zap
+  Zap,
+  Wallet,
+  CheckCircle
 } from 'lucide-react';
 // import { Asset, Budget, Expense } from '../../data/mockData';
 import { useFinance } from '../../contexts/dashboard/Finance';
 import { companyId, formatDate, userUUID } from '../../constants/appConstants';
-import { Asset, Budget, Expense } from '../../data/mockData';
+import { Account, Asset, Budget, Customer, Expense } from '../../data/mockData';
 import toast from 'react-hot-toast';
 import { AssetModal, BudgetModal, ExpenseModal, PaymentModal } from '../../components/financeModals';
 import { useCustomers } from '../../contexts/dashboard/Customers';
+import { useAccounts } from '../../contexts/dashboard/Account';
 
 interface FinanceData{
   expenses: Expense[];
@@ -87,7 +90,6 @@ interface ModalProps {
   loading: boolean;
 }
 
-// Revenue Modal Component with Commission Support
 const RevenueModal: React.FC<ModalProps> = ({ 
   show, 
   onClose, 
@@ -95,32 +97,44 @@ const RevenueModal: React.FC<ModalProps> = ({
   formData, 
   onFormChange, 
   loading,
-  companyId 
+  companyId, 
 }) => {
+  const [customerAccounts, setCustomerAccounts] = useState<Account[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [selectedCustomerAccount, setselectedCustomerAccount] = useState<Account | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
   const { customers } = useCustomers();
-  const [loadingCustomers, setLoadingCustomers] = useState(false);
 
-  // Fetch customers when modal opens and commission source is selected
+  // Fetch accounts when customer is selected
   useEffect(() => {
-    if (show && formData.source === 'commissions') {
-      fetchCustomers();
+    if (formData.customer_id && formData.source === 'commissions') {
+      fetchCustomerAccounts(selectedCustomer.customer_id);
+    } else {
+      setCustomerAccounts([]);
+      setselectedCustomerAccount(null);
     }
-  }, [show, formData.source]);
+  }, [formData.customer_id, formData.source]);
 
-  const fetchCustomers = async () => {
+  const fetchCustomerAccounts = async (customerId: string) => {
     try {
-      setLoadingCustomers(true);
-      const response = await fetch(`https://susu-pro-backend.onrender.com/api/accounts/company/${companyId}`);
+      setLoadingAccounts(true);
+      const response = await fetch(`https://susu-pro-backend.onrender.com/api/accounts/customer/${customerId}`);
       const data = await response.json();
       
       if (data.status === 'success') {
-        setCustomers(data.data || []);
+        setCustomerAccounts(data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching customers:', error);
+      console.error('Error fetching accounts:', error);
+      setCustomerAccounts([]);
     } finally {
-      setLoadingCustomers(false);
+      setLoadingAccounts(false);
     }
+  };
+
+  const selectAccount = (account: Account) => {
+    setselectedCustomerAccount(account);
+    onFormChange('account_id', account.id);
   };
 
   const handleSubmit = () => {
@@ -130,10 +144,16 @@ const RevenueModal: React.FC<ModalProps> = ({
       return;
     }
 
-    // Validate customer selection for commissions
-    if (formData.source === 'commissions' && !formData.customer_id) {
-      alert('Please select a customer for commission deduction');
-      return;
+    // Validate customer and account selection for commissions
+    if (formData.source === 'commissions') {
+      if (!formData.customer_id) {
+        alert('Please select a customer for commission deduction');
+        return;
+      }
+      if (!formData.account_id) {
+        alert('Please select an account for commission deduction');
+        return;
+      }
     }
 
     onSubmit(formData, companyId);
@@ -184,9 +204,12 @@ const RevenueModal: React.FC<ModalProps> = ({
               value={formData.source || ''}
               onChange={(e) => {
                 onFormChange('source', e.target.value);
-                // Clear customer selection when source changes
+                // Clear customer and account selection when source changes
                 if (e.target.value !== 'commissions') {
                   onFormChange('customer_id', '');
+                  onFormChange('account_id', '');
+                  setCustomerAccounts([]);
+                  setselectedCustomerAccount(null);
                 }
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -202,27 +225,120 @@ const RevenueModal: React.FC<ModalProps> = ({
 
           {/* Customer Selection - Only visible when commissions is selected */}
           {formData.source === 'commissions' && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select Customer <span className="text-red-500">*</span>
-              </label>
-              {loadingCustomers ? (
-                <div className="text-sm text-gray-500">Loading customers...</div>
-              ) : (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select Customer <span className="text-red-500">*</span>
+                </label>
                 <select
                   value={formData.customer_id || ''}
-                  onChange={(e) => onFormChange('customer_id', e.target.value)}
+                  onChange={(e) => {
+                    onFormChange('customer_id', e.target.value);
+                    // Reset account selection when customer changes
+                    onFormChange('account_id', '');
+                    setselectedCustomerAccount(null);
+                    
+                   setSelectedCustomer(
+                    customers.find(customer => customer.id === selectedCustomerAccount?.customer_id)
+                  );
+
+
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select a customer</option>
                   {customers.map((customer) => (
                     <option key={customer.id} value={customer.id}>
-                      {customer.name} - Balance: {customer.total_balance_across_all_accounts}
+                      {customer.name} ({customer.account_number}) - Balance: ¢{customer.total_balance_across_all_accounts?.toLocaleString() || '0'}
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Account Selection - Only visible when customer is selected */}
+              {formData.customer_id && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                    <Wallet className="w-4 h-4 mr-2 text-gray-500" />
+                    Select Account
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  
+                  {loadingAccounts ? (
+                    <div className="text-sm text-gray-500 text-center py-4">Loading accounts...</div>
+                  ) : customerAccounts.length === 0 ? (
+                    <div className="text-sm text-gray-500 text-center py-4 bg-white rounded-lg border border-gray-200">
+                      No accounts found for this customer
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {customerAccounts.map((account) => (
+                        <div
+                          key={account.id}
+                          onClick={() => selectAccount(account)}
+                          className={`p-4 border-2 rounded-xl cursor-pointer transition-all hover:shadow-md ${
+                            selectedCustomerAccount?.id === account.id
+                              ? 'border-emerald-500 bg-emerald-50 shadow-md'
+                              : 'border-gray-200 bg-white hover:border-emerald-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-lg ${
+                                selectedCustomerAccount?.id === account.id 
+                                  ? 'bg-emerald-100' 
+                                  : 'bg-gray-100'
+                              }`}>
+                                <Building2 className={`w-5 h-5 ${
+                                  selectedCustomerAccount?.id === account.id 
+                                    ? 'text-emerald-600' 
+                                    : 'text-gray-600'
+                                }`} />
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-900">
+                                  {account.account_number}
+                                </div>
+                                <div className={`text-sm ${
+                                  selectedCustomerAccount?.id === account.id 
+                                    ? 'text-emerald-700' 
+                                    : 'text-gray-500'
+                                }`}>
+                                  {account.account_type.charAt(0).toUpperCase() + account.account_type.slice(1)} Account
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className={`text-lg font-semibold ${
+                                selectedCustomerAccount?.id === account.id 
+                                  ? 'text-emerald-600' 
+                                  : 'text-gray-900'
+                              }`}>
+                                ¢{account.balance ? account.balance.toLocaleString() : '0'}
+                              </div>
+                              <div className={`text-xs ${
+                                selectedCustomerAccount?.id === account.id 
+                                  ? 'text-emerald-600' 
+                                  : 'text-gray-500'
+                              }`}>
+                                Available Balance
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {selectedCustomerAccount?.id === account.id && (
+                            <div className="mt-2 flex justify-end">
+                              <CheckCircle className="w-5 h-5 text-emerald-500" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
-              <p className="text-xs text-gray-600 mt-2">
+
+              <p className="text-xs text-gray-600">
                 Commission will be deducted from the selected customer's account balance
               </p>
             </div>
@@ -263,7 +379,7 @@ const RevenueModal: React.FC<ModalProps> = ({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={loading || loadingCustomers}
+            disabled={loading || loadingAccounts}
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Adding...' : 'Add Revenue'}
@@ -273,6 +389,7 @@ const RevenueModal: React.FC<ModalProps> = ({
     </div>
   );
 };
+
 
 // Main Component
 const FinancialDashboard: React.FC = () => {

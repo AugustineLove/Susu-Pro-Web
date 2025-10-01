@@ -46,7 +46,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (res.ok) {
         const data = await res.json();
-        setCustomers(data.data); // assumes backend response: { data: [...] }
+        setCustomers(data.data); 
       } else {
         const errText = await res.text();
         console.error('Failed to fetch customers:', errText);
