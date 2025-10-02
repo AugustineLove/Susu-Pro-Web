@@ -29,7 +29,8 @@ export interface Commission {
   amount: number;
   created_by: string;
   created_by_type: string;
-  company_string: string;
+  transaction_id?: string;
+  company_id: string;
 }
 
 export interface Account {

@@ -29,11 +29,12 @@ import {
 // import { Asset, Budget, Expense } from '../../data/mockData';
 import { useFinance } from '../../contexts/dashboard/Finance';
 import { companyId, formatDate, userUUID } from '../../constants/appConstants';
-import { Account, Asset, Budget, Customer, Expense } from '../../data/mockData';
+import { Account, Asset, Budget, Commission, Customer, Expense } from '../../data/mockData';
 import toast from 'react-hot-toast';
 import { AssetModal, BudgetModal, ExpenseModal, PaymentModal } from '../../components/financeModals';
 import { useCustomers } from '../../contexts/dashboard/Customers';
 import { useAccounts } from '../../contexts/dashboard/Account';
+import { useTransactions } from '../../contexts/dashboard/Transactions';
 
 interface FinanceData{
   expenses: Expense[];
@@ -79,6 +80,7 @@ export interface FormDataState {
   method?: string;
   recorded_by?: string;
   source?: string;
+  account_id?: string;
 }
 
 interface ModalProps {
@@ -90,68 +92,70 @@ interface ModalProps {
   loading: boolean;
 }
 
-const RevenueModal: React.FC<ModalProps> = ({ 
-  show, 
-  onClose, 
-  onSubmit, 
-  formData, 
-  onFormChange, 
+const RevenueModal: React.FC<ModalProps> = ({
+  show,
+  onClose,
+  onSubmit,
+  formData,
+  onFormChange,
   loading,
-  companyId, 
+  companyId,
 }) => {
   const [customerAccounts, setCustomerAccounts] = useState<Account[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
-  const [selectedCustomerAccount, setselectedCustomerAccount] = useState<Account | null>(null);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
-  const { customers } = useCustomers();
+  const [selectedCustomerAccount, setSelectedCustomerAccount] = useState<Account | null>(null);
+  const { deductCommission } = useTransactions();
 
-  // Fetch accounts when customer is selected
+  const { customers } = useCustomers();
+  const selectedCustomer = customers.find(
+    (c) => c.id === formData.customer_id
+  ) || null;
+
+  // Fetch accounts when customer + commissions
   useEffect(() => {
-    if (formData.customer_id && formData.source === 'commissions') {
-      fetchCustomerAccounts(selectedCustomer.customer_id);
+    const fetchCustomerAccounts = async (customerId: string) => {
+      try {
+        setLoadingAccounts(true);
+        const res = await fetch(
+          `http://localhost:5000/api/accounts/customer/${customerId}`
+        );
+        const data = await res.json();
+        if (data.status === "success") {
+          setCustomerAccounts(data.data || []);
+        } else {
+          setCustomerAccounts([]);
+          toast.error("Failed to fetch accounts");
+        }
+      } catch (err) {
+        console.error("Error fetching accounts:", err);
+        setCustomerAccounts([]);
+        toast.error("Failed to load customer accounts");
+      } finally {
+        setLoadingAccounts(false);
+      }
+    };
+
+    if (formData.source === "commissions" && formData.customer_id) {
+      fetchCustomerAccounts(formData.customer_id);
     } else {
       setCustomerAccounts([]);
-      setselectedCustomerAccount(null);
+      setSelectedCustomerAccount(null);
     }
-  }, [formData.customer_id, formData.source]);
-
-  const fetchCustomerAccounts = async (customerId: string) => {
-    try {
-      setLoadingAccounts(true);
-      const response = await fetch(`https://susu-pro-backend.onrender.com/api/accounts/customer/${customerId}`);
-      const data = await response.json();
-      
-      if (data.status === 'success') {
-        setCustomerAccounts(data.data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching accounts:', error);
-      setCustomerAccounts([]);
-    } finally {
-      setLoadingAccounts(false);
-    }
-  };
-
-  const selectAccount = (account: Account) => {
-    setselectedCustomerAccount(account);
-    onFormChange('account_id', account.id);
-  };
+  }, [formData.source, formData.customer_id]);
 
   const handleSubmit = () => {
-    // Validate required fields
     if (!formData.description || !formData.amount) {
-      alert('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
-    // Validate customer and account selection for commissions
-    if (formData.source === 'commissions') {
+    if (formData.source === "commissions") {
       if (!formData.customer_id) {
-        alert('Please select a customer for commission deduction');
+        toast.error("Please select a customer");
         return;
       }
       if (!formData.account_id) {
-        alert('Please select an account for commission deduction');
+        toast.error("Please select an account");
         return;
       }
     }
@@ -166,53 +170,55 @@ const RevenueModal: React.FC<ModalProps> = ({
       <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-semibold mb-4">Add Revenue</h2>
         <div className="space-y-4">
+          {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Description <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              required
-              value={formData.description || ''}
-              onChange={(e) => onFormChange('description', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={formData.description || ""}
+              onChange={(e) => onFormChange("description", e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="Revenue description"
             />
           </div>
 
+          {/* Amount */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Amount <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
-              required
               step="0.01"
               min="0"
-              value={formData.amount || ''}
-              onChange={(e) => onFormChange('amount', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={formData.amount ?? ""}
+              onChange={(e) =>
+                onFormChange("amount", Number(e.target.value) || 0)
+              }
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="0.00"
             />
           </div>
 
+          {/* Source */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Source <span className="text-red-500">*</span>
             </label>
             <select
-              value={formData.source || ''}
+              value={formData.source || ""}
               onChange={(e) => {
-                onFormChange('source', e.target.value);
-                // Clear customer and account selection when source changes
-                if (e.target.value !== 'commissions') {
-                  onFormChange('customer_id', '');
-                  onFormChange('account_id', '');
+                onFormChange("source", e.target.value);
+                if (e.target.value !== "commissions") {
+                  onFormChange("customer_id", "");
+                  onFormChange("account_id", "");
                   setCustomerAccounts([]);
-                  setselectedCustomerAccount(null);
+                  setSelectedCustomerAccount(null);
                 }
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select source</option>
               <option value="sales">Product Sales</option>
@@ -223,51 +229,46 @@ const RevenueModal: React.FC<ModalProps> = ({
             </select>
           </div>
 
-          {/* Customer Selection - Only visible when commissions is selected */}
-          {formData.source === 'commissions' && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+          {/* Customer Selection */}
+          {formData.source === "commissions" && (
+            <div className="bg-blue-50 border rounded-lg p-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Select Customer <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={formData.customer_id || ''}
+                  value={formData.customer_id || ""}
                   onChange={(e) => {
-                    onFormChange('customer_id', e.target.value);
-                    // Reset account selection when customer changes
-                    onFormChange('account_id', '');
-                    setselectedCustomerAccount(null);
-                    
-                   setSelectedCustomer(
-                    customers.find(customer => customer.id === selectedCustomerAccount?.customer_id)
-                  );
-
-
+                    onFormChange("customer_id", e.target.value);
+                    onFormChange("account_id", "");
+                    setSelectedCustomerAccount(null);
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select a customer</option>
-                  {customers.map((customer) => (
-                    <option key={customer.id} value={customer.id}>
-                      {customer.name} ({customer.account_number}) - Balance: ¢{customer.total_balance_across_all_accounts?.toLocaleString() || '0'}
+                  {customers.map((c) => (
+                    <option key={c.id} value={c.customer_id}>
+                      {c.name} ({c.account_number}) - Balance: ¢
+                      {c.total_balance_across_all_accounts?.toLocaleString() ||
+                        "0"}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Account Selection - Only visible when customer is selected */}
+              {/* Account Selection */}
               {formData.customer_id && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
                     <Wallet className="w-4 h-4 mr-2 text-gray-500" />
                     Select Account
-                    <span className="text-red-500 ml-1">*</span>
                   </label>
-                  
                   {loadingAccounts ? (
-                    <div className="text-sm text-gray-500 text-center py-4">Loading accounts...</div>
+                    <div className="text-sm text-gray-500 text-center py-4">
+                      Loading accounts...
+                    </div>
                   ) : customerAccounts.length === 0 ? (
-                    <div className="text-sm text-gray-500 text-center py-4 bg-white rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-500 text-center py-4">
                       No accounts found for this customer
                     </div>
                   ) : (
@@ -275,58 +276,43 @@ const RevenueModal: React.FC<ModalProps> = ({
                       {customerAccounts.map((account) => (
                         <div
                           key={account.id}
-                          onClick={() => selectAccount(account)}
-                          className={`p-4 border-2 rounded-xl cursor-pointer transition-all hover:shadow-md ${
-                            selectedCustomerAccount?.id === account.id
-                              ? 'border-emerald-500 bg-emerald-50 shadow-md'
-                              : 'border-gray-200 bg-white hover:border-emerald-300'
+                          onClick={() => {
+                            setSelectedCustomerAccount(account);
+                            onFormChange("account_id", account.id);
+                          }}
+                          className={`p-4 border-2 rounded-xl cursor-pointer ${
+                            formData.account_id === account.id
+                              ? "border-emerald-500 bg-emerald-50"
+                              : "border-gray-200 bg-white"
                           }`}
                         >
-                          <div className="flex items-center justify-between">
+                          <div className="flex justify-between items-center">
                             <div className="flex items-center space-x-3">
-                              <div className={`p-2 rounded-lg ${
-                                selectedCustomerAccount?.id === account.id 
-                                  ? 'bg-emerald-100' 
-                                  : 'bg-gray-100'
-                              }`}>
-                                <Building2 className={`w-5 h-5 ${
-                                  selectedCustomerAccount?.id === account.id 
-                                    ? 'text-emerald-600' 
-                                    : 'text-gray-600'
-                                }`} />
-                              </div>
+                              <Building2 className="w-5 h-5 text-gray-600" />
                               <div>
-                                <div className="font-medium text-gray-900">
+                                <div className="font-medium">
                                   {account.account_number}
                                 </div>
-                                <div className={`text-sm ${
-                                  selectedCustomerAccount?.id === account.id 
-                                    ? 'text-emerald-700' 
-                                    : 'text-gray-500'
-                                }`}>
-                                  {account.account_type.charAt(0).toUpperCase() + account.account_type.slice(1)} Account
+                                <div className="text-sm text-gray-500">
+                                  {account.account_type.charAt(0).toUpperCase() +
+                                    account.account_type.slice(1)}{" "}
+                                  Account
                                 </div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className={`text-lg font-semibold ${
-                                selectedCustomerAccount?.id === account.id 
-                                  ? 'text-emerald-600' 
-                                  : 'text-gray-900'
-                              }`}>
-                                ¢{account.balance ? account.balance.toLocaleString() : '0'}
+                              <div className="text-lg font-semibold">
+                                ¢
+                                {account.balance
+                                  ? account.balance.toLocaleString()
+                                  : "0"}
                               </div>
-                              <div className={`text-xs ${
-                                selectedCustomerAccount?.id === account.id 
-                                  ? 'text-emerald-600' 
-                                  : 'text-gray-500'
-                              }`}>
+                              <div className="text-xs text-gray-500">
                                 Available Balance
                               </div>
                             </div>
                           </div>
-                          
-                          {selectedCustomerAccount?.id === account.id && (
+                          {formData.account_id === account.id && (
                             <div className="mt-2 flex justify-end">
                               <CheckCircle className="w-5 h-5 text-emerald-500" />
                             </div>
@@ -337,19 +323,21 @@ const RevenueModal: React.FC<ModalProps> = ({
                   )}
                 </div>
               )}
-
               <p className="text-xs text-gray-600">
-                Commission will be deducted from the selected customer's account balance
+                Commission will be deducted from the selected customer account
               </p>
             </div>
           )}
 
+          {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
             <select
-              value={formData.category || ''}
-              onChange={(e) => onFormChange('category', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={formData.category || ""}
+              onChange={(e) => onFormChange("category", e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select category</option>
               <option value="operations">Operations</option>
@@ -359,38 +347,40 @@ const RevenueModal: React.FC<ModalProps> = ({
             </select>
           </div>
 
+          {/* Date */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Date
+            </label>
             <input
               type="date"
-              value={formData.date || ''}
-              onChange={(e) => onFormChange('date', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={formData.date || ""}
+              onChange={(e) => onFormChange("date", e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
+        {/* Footer */}
         <div className="flex space-x-3 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading || loadingAccounts}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? 'Adding...' : 'Add Revenue'}
+            {loading ? "Adding..." : "Add Revenue"}
           </button>
         </div>
       </div>
     </div>
   );
 };
-
-
 // Main Component
 const FinancialDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -403,7 +393,7 @@ const FinancialDashboard: React.FC = () => {
   const { data, fetchFinanceData, addExpense, addPayment, addAsset, addBudget, loading } = useFinance();
   const [categoryFilter, setCategoryFilter] = useState("All Categories");
   const [statusFilter, setStatusFilter] = useState("All Status");
-
+  const { deductCommission } = useTransactions();
   useEffect(() => {
     fetchFinanceData();
   }, [companyId]);
@@ -542,6 +532,7 @@ const calculateOperationalMetrics = () => {
     description: "",
     amount: 0,
     category: "",
+    account_id: '',
     source: "",
     date: new Date().toISOString().split("T")[0],
   };
@@ -616,19 +607,30 @@ const calculateOperationalMetrics = () => {
   };
 
   const submitRevenue = async (formData: FormDataState, company_id: string) => {
-    try {
-      const toastId = toast.loading('Adding payment...');
-      const { description, amount, date, category, method, source } = formData;
-      const paymentData = { description, amount, date, category, method, source };
-      const res = await addPayment(company_id, {status: "approved", type: "payment", recorded_by: userUUID, ...paymentData});
-      if (res === true){
-        toast.success("Payment added successfully!", {id: toastId});
+    const toastId = toast.loading('Adding payment...');
+      try {
+      const { description, amount, date, category, method, source, account_id } = formData;
+      console.log('Account id: ', account_id);
+      const created_by = userUUID === companyId ? companyId : userUUID;
+      const created_by_type = userUUID === companyId ? 'company' : 'staff';
+      const company_id = companyId;
+      const paymentData = { description, amount, date, category, method, source, account_id, created_by, created_by_type, company_id };
+      if (source === 'commissions'){
+        const res = await deductCommission(paymentData as Commission);
+        toast.success("Commission added successfully!", {id: toastId});
         setRevenueFormData(defaultRevenueFormData);
         setShowRevenueModal(false);
-      } else{
-        toast.error('Failed to add payment', {id: toastId});
+      }
+      if (source !== 'commissions'){
+        const res = await addPayment(company_id, {status: "approved", type: "payment", recorded_by: userUUID, ...paymentData});
+        if (res === true){
+          toast.success("Payment added successfully!", {id: toastId});
+          setRevenueFormData(defaultRevenueFormData);
+          setShowRevenueModal(false);
+        }
       }
     } catch (error) {
+      toast.error('Failed to add revenue', {id: toastId})
       console.log(error);
     }
   };
