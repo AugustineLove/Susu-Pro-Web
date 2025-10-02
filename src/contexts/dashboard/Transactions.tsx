@@ -125,7 +125,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // console.log(`Account id: ${accountId}`)
     try {
       setLoading(true)
-      const res = await fetch(`http://localhost:5000/api/transactions/commission/${accountId}`,{
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/commission/${accountId}`,{
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
