@@ -49,6 +49,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
       const json = await res.json();
       if (json.status === "success") {
         setData(json.data);
+        console.log(`Finance data: ${JSON.stringify(data)}`)
       }
       } catch (err) {
       console.error("Failed to fetch financials:", err);

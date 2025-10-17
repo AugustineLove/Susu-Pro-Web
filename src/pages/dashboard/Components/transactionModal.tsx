@@ -21,7 +21,7 @@ import { companyId, companyName } from "../../../constants/appConstants";
 import { useTransactions } from "../../../contexts/dashboard/Transactions";
 import toast from 'react-hot-toast';
 
-// Mock interfaces (replace with your actual imports)
+
 interface Customer {
   company_id?: string;
   id: string;
@@ -44,6 +44,7 @@ interface Customer {
   registered_by?: string;
   customer_id?: string; 
   total_balance_across_all_accounts?: string;
+  account_number?: string;
 }
 
 interface Account {
@@ -78,7 +79,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
   const { customers, customerLoading: customersLoading, refreshCustomers } = useCustomers();
   const { staffList, loading: staffLoading } = useStaff();
   const { accounts, refreshAccounts, setAccounts } = useAccounts();
-    const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [formData, setFormData] = useState({
     account_id: transaction?.account_id || '',
     amount: transaction?.amount?.toString() || '',
@@ -96,7 +97,22 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { addTransaction, refreshTransactions, loading } = useTransactions();
-  
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+
+useEffect(() => {
+  const loadAccounts = async () => {
+    if (!selectedCustomer) return;
+
+    setLoadingAccounts(true);
+    setAccounts([]);
+
+    await refreshAccounts(selectedCustomer.id);
+    setLoadingAccounts(false);
+  };
+
+  loadAccounts();
+}, [selectedCustomer]);
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -326,9 +342,13 @@ const filteredCustomers = customers.filter(customer =>
                         >
                           <div className="flex items-center justify-between">
                             <div>
+                            <div className="flex items-center justify-center">
                               <div className="font-medium text-gray-900">{customer.name}</div>
+                              <div className="text-sm text-gray-500 ml-2"> {customer.account_number || 'N/A'}</div>
+                            </div>
                               <div className="text-sm text-gray-500">{customer.phone_number}</div>
                               <div className="text-xs text-gray-400">{customer.email}</div>
+                            <div className="text-xs text-gray-400">{customer.registered_by_name}</div>
                             </div>
                             <div className="text-right">
                               <div className="text-sm font-medium text-emerald-600">
@@ -363,8 +383,10 @@ const filteredCustomers = customers.filter(customer =>
                   <div className="mt-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium text-emerald-900">{selectedCustomer.name}</div>
+                          <div className="font-medium text-emerald-900">{selectedCustomer.name}</div>
+                        <div className="font-medium text-emerald-900 text-sm">{selectedCustomer.account_number}</div>
                         <div className="text-sm text-emerald-700">{selectedCustomer.phone_number}</div>
+
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-semibold text-emerald-600">
@@ -378,87 +400,144 @@ const filteredCustomers = customers.filter(customer =>
               </div>
 
               {/* Account Selection */}
-                {selectedCustomer && accounts.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
-                      <Wallet className="w-4 h-4 mr-2 text-gray-500" />
-                      Select Account
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <div className="space-y-3">
-                      {accounts.map((account) => (
-                        <div
-                          key={account.id}
-                          onClick={() => selectAccount(account)}
-                          className={`p-4 border-2 rounded-xl cursor-pointer transition-all hover:shadow-md ${
-                            selectedAccount?.id === account.id
-                              ? 'border-emerald-500 bg-emerald-50 shadow-md'
-                              : 'border-gray-200 hover:border-emerald-300'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className={`p-2 rounded-lg ${
-                                selectedAccount?.id === account.id 
-                                  ? 'bg-emerald-100' 
-                                  : 'bg-gray-100'
-                              }`}>
-                                <Building2 className={`w-5 h-5 ${
-                                  selectedAccount?.id === account.id 
-                                    ? 'text-emerald-600' 
-                                    : 'text-gray-600'
-                                }`} />
-                              </div>
-                              <div>
-                                <div className="font-medium text-gray-900">
-                                  {account.account_number}
-                                </div>
-                                <div className={`text-sm ${
-                                  selectedAccount?.id === account.id 
-                                    ? 'text-emerald-700' 
-                                    : 'text-gray-500'
-                                }`}>
-                                  {account.account_type.charAt(0).toUpperCase() + account.account_type.slice(1)} Account
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className={`text-lg font-semibold ${
-                                selectedAccount?.id === account.id 
-                                  ? 'text-emerald-600' 
-                                  : 'text-gray-900'
-                              }`}>
-                                ¢{account.balance ? account.balance.toLocaleString() : '0'}
-                              </div>
-                              <div className={`text-xs ${
-                                selectedAccount?.id === account.id 
-                                  ? 'text-emerald-600' 
-                                  : 'text-gray-500'
-                              }`}>
-                                Available Balance
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {selectedAccount?.id === account.id && (
-                            <div className="mt-2 flex justify-end">
-                              <CheckCircle className="w-5 h-5 text-emerald-500" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {errors.account_id && (
-                      <p className="mt-2 text-sm text-red-600 flex items-center">
-                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                        {errors.account_id}
-                      </p>
-                    )}
+                {selectedCustomer && (
+  <div>
+    {loadingAccounts ? (
+      // 🔹 Loader Section
+      <div className="flex justify-center items-center py-10">
+        <svg
+          className="w-6 h-6 animate-spin text-emerald-500"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          ></path>
+        </svg>
+        <span className="ml-3 text-gray-600">Loading accounts...</span>
+      </div>
+    ) : accounts.length > 0 ? (
+      // 🔹 Accounts Section
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+          <Wallet className="w-4 h-4 mr-2 text-gray-500" />
+          Select Account
+          <span className="text-red-500 ml-1">*</span>
+        </label>
+
+        <div className="space-y-3">
+          {accounts.map((account) => (
+            <div
+              key={account.id}
+              onClick={() => selectAccount(account)}
+              className={`p-4 border-2 rounded-xl cursor-pointer transition-all hover:shadow-md ${
+                selectedAccount?.id === account.id
+                  ? 'border-emerald-500 bg-emerald-50 shadow-md'
+                  : 'border-gray-200 hover:border-emerald-300'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div
+                    className={`p-2 rounded-lg ${
+                      selectedAccount?.id === account.id
+                        ? 'bg-emerald-100'
+                        : 'bg-gray-100'
+                    }`}
+                  >
+                    <Building2
+                      className={`w-5 h-5 ${
+                        selectedAccount?.id === account.id
+                          ? 'text-emerald-600'
+                          : 'text-gray-600'
+                      }`}
+                    />
                   </div>
-                )}
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {account.account_number}
+                    </div>
+                    <div
+                      className={`text-sm ${
+                        selectedAccount?.id === account.id
+                          ? 'text-emerald-700'
+                          : 'text-gray-500'
+                      }`}
+                    >
+                      {account.account_type.charAt(0).toUpperCase() +
+                        account.account_type.slice(1)}{' '}
+                      Account
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div
+                    className={`text-lg font-semibold ${
+                      selectedAccount?.id === account.id
+                        ? 'text-emerald-600'
+                        : 'text-gray-900'
+                    }`}
+                  >
+                    ¢{account.balance ? account.balance.toLocaleString() : '0'}
+                  </div>
+                  <div
+                    className={`text-xs ${
+                      selectedAccount?.id === account.id
+                        ? 'text-emerald-600'
+                        : 'text-gray-500'
+                    }`}
+                  >
+                    Available Balance
+                  </div>
+                </div>
+              </div>
+
+              {selectedAccount?.id === account.id && (
+                <div className="mt-2 flex justify-end">
+                  <CheckCircle className="w-5 h-5 text-emerald-500" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {errors.account_id && (
+          <p className="mt-2 text-sm text-red-600 flex items-center">
+            <svg
+              className="w-4 h-4 mr-1"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {errors.account_id}
+          </p>
+        )}
+      </div>
+    ) : (
+      // 🔹 Empty State
+      <div className="text-gray-500 text-center py-6">
+        No accounts found for this customer.
+      </div>
+    )}
+  </div>
+)}
+
               </div>
 
 

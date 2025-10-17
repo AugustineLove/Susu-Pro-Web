@@ -4,7 +4,7 @@ import { Commission, mockWithdrawals, Withdrawal } from '../../data/mockData';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
 import { TransactionType, useTransactions } from '../../contexts/dashboard/Transactions';
 import { toast } from 'react-hot-toast';
-import { companyId, companyName, userUUID } from '../../constants/appConstants';
+import { companyId, companyName, parentCompanyName, userUUID } from '../../constants/appConstants';
 import { CommissionModal } from '../../components/financeModals';
 import { FormDataState } from './Finance';
 
@@ -112,7 +112,7 @@ const makeSuSuProName = (companyName: string) => {
   const approvalSuccess = await approveTransaction(withdrawaId, {
     messageTo: customerPhone,
     message: `Hello ${customerName} you have withdrawn an amount of GHS${withdrawalAmount}`,
-    messageFrom: makeSuSuProName(companyName),
+    messageFrom: makeSuSuProName(parentCompanyName),
   });
 
   if (approvalSuccess) {

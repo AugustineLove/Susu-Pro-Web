@@ -35,6 +35,11 @@ export const getDisplayName = () => {
   return user.type === "company" ? user.companyName : user.staffName;
 };
 
+export const getParentCompanyName = () => {
+  if (!user) return null;
+  return user.type === "staff" ? user.companyName : user.companyName;
+}
+
       
 export function formatDate(dateString: string, locale: string = "en-US"): string {
   if (!dateString) return "";
@@ -55,3 +60,4 @@ export const companyName = getDisplayName();
 export const userRole = getUserRole();
 export const userPermissions = getUserPermissions();
 export const userUUID = getUserUUID();
+export const parentCompanyName = getParentCompanyName();

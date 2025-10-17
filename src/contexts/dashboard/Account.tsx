@@ -5,7 +5,7 @@ interface AccountsContextType {
   accounts: Account[];
   loading: boolean;
   addAccount: (newAccount: Omit<Account, 'id' | 'created_at'>) => Promise<boolean>;
-  refreshAccounts: (customerId: string) => void;
+  refreshAccounts: (customerId: string) => Promise<Account>;
   setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
 }
 
@@ -33,6 +33,7 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       const data = await res.json();
       setAccounts(data.data);
+      return data.data;
     } catch (error) {
       console.error('Error fetching accounts:', error);
     } finally {
