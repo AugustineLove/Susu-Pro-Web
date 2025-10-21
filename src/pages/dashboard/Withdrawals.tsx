@@ -304,6 +304,9 @@ const makeSuSuProName = (companyName: string) => {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{withdrawal.customer_name}</div>
+                        <span className="text-gray-700 font-medium text-sm">
+                          {withdrawal.customer_account_number}
+                        </span>
                         <p className='text-[10px]'>Staff: {withdrawal.staff_name}</p>
                       </div>
                     </div>
