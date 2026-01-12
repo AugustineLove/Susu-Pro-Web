@@ -39,7 +39,7 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   try {
 
     const res = await fetch(
-      `http://localhost:5000/api/loans/all/${companyId}`
+      `https://susu-pro-backend.onrender.com/api/loans/all/${companyId}`
     );
 
     if (!res.ok) {
@@ -74,7 +74,7 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const fetchAccounts = async (customerId: string) => {
     setLoading(true);
     try {
-        const res = await fetch(`http://localhost:5000/api/accounts/customer/${customerId}`);
+        const res = await fetch(`https://susu-pro-backend.onrender.com/api/accounts/customer/${customerId}`);
       if (!res.ok) {
         const errorText = await res.text();
         return;
@@ -99,7 +99,7 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const addAccount = async(newAccount: Omit<Account, 'id' | 'created_at'>)=>{
       try {
         console.log('Adding account for customer');
-        const res = await fetch('http://localhost:5000/api/accounts/create', {
+        const res = await fetch('https://susu-pro-backend.onrender.com/api/accounts/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json'},
           body: JSON.stringify(newAccount),

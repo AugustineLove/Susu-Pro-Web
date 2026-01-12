@@ -142,7 +142,7 @@ const verifyOtp = async () => {
     console.log(`Adding staff ${companyId}`);
     try {
       const toastId= toast.loading('Adding staff...');
-      const res = await fetch('http://localhost:5000/api/staff/create-agent', {
+      const res = await fetch('https://susu-pro-backend.onrender.com/api/staff/create-agent', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
