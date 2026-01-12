@@ -7,6 +7,8 @@ import { Link } from 'react-router-dom';
 import { ClientModal } from './Components/clientModal';
 import { useCustomers } from '../../contexts/dashboard/Customers';
 import {TransactionModal} from './Components/transactionModal';
+import { userPermissions } from '../../constants/appConstants';
+import { useFinance } from '../../contexts/dashboard/Finance';
 
 const Overview: React.FC = () => {
  
@@ -17,12 +19,24 @@ const Overview: React.FC = () => {
   const [editingClient, setEditingClient] = useState<Customer | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const { customers, setCustomers, addCustomer, refreshCustomers  } = useCustomers();
+  const { data, fetchFinanceData, addExpense, addPayment, addAsset, addBudget, loading } = useFinance();
   const pendingWithdrawals = transactions?.filter(w => w && w.status === 'pending').length || 0;
   const recentTransactions = transactions.slice(0, 5);
   const recentWithdrawals = mockWithdrawals
     .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime())
     .slice(0, 3);
+  const budgets = data.budgets;
 
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+  const today = new Date().toISOString().split("T")[0];
+
+  const todayBudgets = budgets.filter(
+    (budget) => budget.date.split("T")[0] === today
+  );
+  console.log(`View briefing permission: ${JSON.stringify(userPermissions.VIEW_BRIEFING)}`);
   const localStats = [
     {
       title: 'Total Customers',
@@ -138,12 +152,13 @@ const Overview: React.FC = () => {
       </div>
 
       {/* localStats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {localStats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div key={index} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-              <div className="flex items-start justify-between">
+      {userPermissions.VIEW_BRIEFING && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {localStats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div key={index} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</p>
@@ -165,6 +180,78 @@ const Overview: React.FC = () => {
           );
         })}
       </div>
+    )}
+    {!userPermissions.VIEW_BRIEFING && (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
+    <h3 className="text-lg font-semibold text-gray-900 mb-6">
+      Budget for Today
+    </h3>
+
+    <div className="space-y-6">
+      {todayBudgets.length === 0 ? (
+        <p className="text-gray-500 text-sm">No budget set for today.</p>
+      ) : (
+        todayBudgets.map((budget) => {
+          const percentage = budget.allocated
+            ? Math.round((budget.spent / budget.allocated) * 100)
+            : 0;
+
+          const remaining = budget.allocated - budget.spent;
+
+          return (
+            <div
+              key={budget.id}
+              className="border border-gray-100 rounded-lg p-4"
+            >
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="font-medium text-gray-900">
+                  {formatDate(budget.date)}
+                </h4>
+
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">
+                    ₵{budget.spent.toLocaleString()} / ₵
+                    {budget.allocated.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {percentage}% used
+                  </p>
+                </div>
+              </div>
+
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
+                <div
+                  className={`h-3 rounded-full transition-all duration-500 ${
+                    percentage > 80
+                      ? "bg-red-500"
+                      : percentage > 60
+                      ? "bg-yellow-500"
+                      : "bg-green-500"
+                  }`}
+                  style={{ width: `${Math.min(percentage, 100)}%` }}
+                />
+              </div>
+
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>
+                  Remaining: ₵{remaining.toLocaleString()}
+                </span>
+                <span>
+                  {remaining < 0
+                    ? "Over budget"
+                    : percentage > 80
+                    ? "Approaching limit"
+                    : "On track"}
+                </span>
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  </div>
+)}
+
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -249,17 +336,17 @@ const Overview: React.FC = () => {
                 <span className="text-sm font-medium text-gray-700">Add Customer</span>
               </button>
               <button onClick={()=> {setShowTransactionModal(true)}} className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-teal-400 hover:bg-teal-50 transition-colors">
-                <Plus className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm font-medium text-gray-700">Add Transaction</span>
+                <ArrowUpDown className="h-8 w-8 text-gray-400 mb-2" />
+                <span className="text-sm font-medium text-gray-700">Transaction</span>
               </button>
-              <button className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors">
+              {/* <button className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors">
                 <Download className="h-8 w-8 text-gray-400 mb-2" />
                 <span className="text-sm font-medium text-gray-700">Generate Report</span>
               </button>
               <button className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors">
                 <ArrowUpDown className="h-8 w-8 text-gray-400 mb-2" />
                 <span className="text-sm font-medium text-gray-700">Process Withdrawal</span>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

@@ -16,8 +16,8 @@ const SubscribeComponent = () => {
   const [subscriptionData, setSubscriptionData] = useState({
     plan: 'Premium',
     status: 'active', // active, expired, cancelled, pending
-    amount: 4999,
-    currency: 'NGN',
+    amount: 20000,
+    currency: 'GHS',
     billingCycle: 'month',
     nextBillingDate: '2025-10-19',
     startDate: '2025-09-19',
@@ -124,7 +124,7 @@ const SubscribeComponent = () => {
       key: 'pk_test_your_paystack_public_key',
       email: 'user@example.com',
       amount: 100, // Minimal amount for authorization
-      currency: 'NGN',
+      currency: 'GHS',
       metadata: {
         type: 'payment_method_update',
         customer_code: subscriptionData.customerCode
@@ -240,7 +240,7 @@ const SubscribeComponent = () => {
               </div>
 
               <div className="flex items-center space-x-3">
-                <DollarSign className="w-5 h-5 text-gray-400" />
+                {/* <DollarSign className="w-5 h-5 text-gray-400" /> */}
                 <div>
                   <div className="text-sm text-gray-600">Billing Amount</div>
                   <div className="font-medium">{formatCurrency(subscriptionData.amount)} {subscriptionData.currency}</div>

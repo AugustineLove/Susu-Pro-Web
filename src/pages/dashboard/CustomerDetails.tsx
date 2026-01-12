@@ -63,7 +63,7 @@ const CustomerDetailsPage = () => {
    const [showAddModal, setShowAddModal] = useState(false); 
     const [editingClient, setEditingClient] = useState<Customer | null>(null);
     const { fetchCustomerById, editCustomer, addCustomer, refreshCustomers, deleteCustomer, customer, customerLoading } = useCustomers();
-  const { accounts, refreshAccounts, addAccount } = useAccounts();
+  const { accounts, customerLoans, refreshAccounts, addAccount } = useAccounts();
   const { fetchCustomerTransactions, customerTransactions } = useTransactions();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -223,6 +223,10 @@ const CustomerDetailsPage = () => {
       setIsLoading(false);
     }
   };
+
+  const handleDeleteAccount = () => {
+
+  }
 
 
   return (
@@ -414,69 +418,251 @@ const CustomerDetailsPage = () => {
         )}
 
         {activeTab === 'accounts' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Customer Accounts</h3>
-              {
-                userPermissions.ALTER_ACCOUNT && (
-                  <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  onClick={() => setIsAddModalOpen(true)}
-                  >
-                <CreditCard className="w-4 h-4" />
-                <span>Add Account</span>
-              </button>
-                )
-              }
+  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+
+    {/* ===== HEADER ===== */}
+    <div className="flex items-center justify-between mb-6">
+      <h3 className="text-lg font-semibold text-gray-900">
+        Customer Accounts
+      </h3>
+
+      {userPermissions.ALTER_ACCOUNT && (
+        <button
+          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          onClick={() => setIsAddModalOpen(true)}
+        >
+          <CreditCard className="w-4 h-4" />
+          <span>Add Account</span>
+        </button>
+      )}
+    </div>
+
+    {/* ========================================================= */}
+    {/* ===== NORMAL ACCOUNTS GRID ===== */}
+    {/* ========================================================= */}
+
+    {accounts.length === 0 ? (
+      <div className="text-center py-8 bg-blue-50 rounded-xl border border-blue-100">
+        <CreditCard className="w-8 h-8 mx-auto mb-2" />
+        <p className="text-sm text-gray-700">
+          This customer has no operational accounts yet.
+        </p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {accounts.map((account) => (
+
+          <div
+            key={account.id}
+            className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow group"
+          >
+
+            {/* ---- top icon + status ---- */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Building className="w-5 h-5 text-white" />
+              </div>
+
+              <span
+                className={`text-xs px-2 py-1 rounded-full ${
+                  account.status === 'Active'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                {account.status}
+              </span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {accounts.map((account) => (
-                <div key={account.id} className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                      <Building className="w-5 h-5 text-white" />
-                    </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      account.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {account.status}
-                    </span>
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">{account.name}</h4>
-                  <p className="text-sm text-gray-600 mb-4">{account.account_type.charAt(0).toUpperCase() + account.account_type.slice(1)}</p>
-                  <p className='text-[10px] text-gray-400'>ID {account.id}</p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Balance:</span>
-                      <span className={`font-medium ${
-                        account.balance >= 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {formatCurrency(account.balance)}
-                      </span>
-                    </div>
-                    {/* <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Interest Rate:</span>
-                      <span className="font-medium text-gray-900">{account.interestRate}%</span>
-                    </div> */}
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Opened:</span>
-                      <span className="font-medium text-gray-900">{formatDate(account.created_at)}</span>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex space-x-2">
-                    <button className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
-                      <Eye className="w-4 h-4" />
-                      <span>Activities</span>
-                    </button>
-                    <button className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-sm border border-red-300 text-red-300 rounded-lg hover:bg-gray-50 transition-colors">
-                      <Edit3 className="w-4 h-4" />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
+
+            <h4 className="text-lg font-semibold text-gray-900 mb-1">
+              {account.account_type}
+            </h4>
+
+            <p className="text-sm text-gray-600 mb-3">
+              {account.account_type.charAt(0).toUpperCase() +
+                account.account_type.slice(1)}
+            </p>
+
+            <p className="text-[10px] text-gray-400 mb-2">
+              ID {account.id}
+            </p>
+
+            {/* ---- balances + opened ---- */}
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Balance:</span>
+
+                <span
+                  className={`font-medium ${
+                    Number(account.balance) >= 0
+                      ? 'text-green-600'
+                      : 'text-red-600'
+                  }`}
+                >
+                  {formatCurrency(account.balance)}
+                </span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Opened:</span>
+                <span className="font-medium text-gray-900">
+                  {formatDate(account.created_at)}
+                </span>
+              </div>
+            </div>
+
+            {/* ---- actions ---- */}
+            <div className="mt-4 pt-4 border-t border-gray-200 flex space-x-2">
+
+              <button className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+                <Eye className="w-4 h-4" />
+                <span>Activities</span>
+              </button>
+
+              <button
+                onClick={() => handleDeleteAccount(account.id)}
+                className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 text-sm border border-red-300 text-red-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <Edit3 className="w-4 h-4" />
+                <span>Delete</span>
+              </button>
+
             </div>
           </div>
-        )}
+
+        ))}
+      </div>
+    )}
+
+
+
+    {/* ========================================================= */}
+    {/* ===== LOAN ACCOUNTS GRID ===== */}
+    {/* ========================================================= */}
+
+    <div className="mt-10">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Loan Accounts
+      </h3>
+
+      {customerLoans.length === 0 ? (
+        <div className="text-center py-8 bg-purple-50 rounded-xl border border-purple-100">
+          <CreditCard className="w-8 h-8 mx-auto mb-2" />
+          <p className="text-sm text-gray-700">
+            This customer has not requested any loans.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          {customerLoans.map((loan) => (
+
+            <div
+              key={loan.id}
+              className="border border-purple-200 rounded-xl p-6 bg-gradient-to-br from-purple-50 to-white hover:shadow-md transition-shadow"
+            >
+
+              {/* ---- icon + status ---- */}
+              <div className="flex items-center justify-between mb-3">
+
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-lg flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-white" />
+                </div>
+
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    loan.status === 'approved'
+                      ? 'bg-green-100 text-green-700'
+                      : loan.status === 'overdue'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
+                  {loan.status}
+                </span>
+              </div>
+
+              <h4 className="text-lg font-semibold text-gray-900">
+                {loan.loanType}
+              </h4>
+
+              <p className="text-[10px] text-gray-400 mb-2">
+                Loan ID {loan.id}
+              </p>
+
+              {/* ---- loan metrics ---- */}
+              <div className="space-y-2 text-sm">
+
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Requested Amount:</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(loan.loanAmount)}
+                  </span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tenure:</span>
+                  <span className="font-medium">
+                    {loan.loanTerm} months
+                  </span>
+                </div>
+
+                {loan.interestRateLoan && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Interest:</span>
+                    <span className="font-medium">
+                      {loan.interestRateLoan}%
+                    </span>
+                  </div>
+                )}
+
+                {loan.disbursementDate && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Disbursed:</span>
+                    <span className="font-medium">
+                      {formatDate(loan.disbursementDate)}
+                    </span>
+                  </div>
+                )}
+
+                {loan.maturityDate && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Maturity:</span>
+                    <span className="font-medium">
+                      {formatDate(loan.maturityDate)}
+                    </span>
+                  </div>
+                )}
+
+                {loan.daysOverdue > 0 && (
+                  <div className="mt-2 text-red-600 text-xs">
+                    {loan.daysOverdue} days overdue
+                  </div>
+                )}
+
+              </div>
+
+
+              {/* ---- purpose ---- */}
+              {loan.purpose && (
+                <div className="mt-3 p-2 bg-white rounded-lg border border-purple-100 text-xs">
+                  Purpose: {loan.purpose}
+                </div>
+              )}
+
+            </div>
+
+          ))}
+
+        </div>
+      )}
+
+    </div>
+
+  </div>
+)}
+
 
         {activeTab === 'transactions' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">

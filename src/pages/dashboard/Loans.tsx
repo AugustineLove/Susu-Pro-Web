@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   CreditCard, 
   Plus, 
@@ -35,148 +35,40 @@ import {
   Car,
   GraduationCap
 } from 'lucide-react';
+import { useAccounts } from '../../contexts/dashboard/Account';
+import { companyId, userRole, userUUID } from '../../constants/appConstants';
+import { Account } from '../../data/mockData';
+import { ApprovePayload, useLoans } from '../../contexts/dashboard/Loan';
+
+interface ApprovalForm {
+  disbursedamount: number;
+  interestRate: number;
+  loanterm: number;
+  disbursementdate: string;
+  notes: string;
+}
 
 const LoanManagement = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedLoan, setSelectedLoan] = useState(null);
+  const [selectedLoan, setSelectedLoan] = useState<Account>();
   const [showNewLoanModal, setShowNewLoanModal] = useState(false);
   const [showRepaymentModal, setShowRepaymentModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
-
-  // Sample loan data
-  const loans = [
-    {
-      id: 'LN001',
-      customerName: 'Akosua Mensah',
-      phone: '+233 24 123 4567',
-      email: 'akosua.mensah@gmail.com',
-      loanType: 'Business Loan',
-      amount: 50000,
-      disbursedAmount: 50000,
-      interestRate: 15,
-      tenure: 12,
-      monthlyPayment: 4833,
-      totalPayable: 58000,
-      amountPaid: 29000,
-      outstandingBalance: 29000,
-      status: 'active',
-      disbursementDate: '2024-03-15',
-      maturityDate: '2025-03-15',
-      nextPaymentDate: '2024-10-15',
-      daysOverdue: 0,
-      collateral: 'Business Equipment',
-      purpose: 'Expand tailoring business',
-      guarantor: 'Kofi Asante',
-      mobilebanker: 'Kwame Asante',
-      creditScore: 750,
-      riskLevel: 'low'
-    },
-    {
-      id: 'LN002',
-      customerName: 'Yaw Osei',
-      phone: '+233 20 987 6543',
-      email: 'yaw.osei@gmail.com',
-      loanType: 'Personal Loan',
-      amount: 15000,
-      disbursedAmount: 15000,
-      interestRate: 18,
-      tenure: 6,
-      monthlyPayment: 2845,
-      totalPayable: 17070,
-      amountPaid: 8535,
-      outstandingBalance: 8535,
-      status: 'overdue',
-      disbursementDate: '2024-06-01',
-      maturityDate: '2024-12-01',
-      nextPaymentDate: '2024-09-01',
-      daysOverdue: 23,
-      collateral: 'Salary Assignment',
-      purpose: 'Medical expenses',
-      guarantor: 'Ama Boateng',
-      mobilebanker: 'Ama Osei',
-      creditScore: 680,
-      riskLevel: 'medium'
-    },
-    {
-      id: 'LN003',
-      customerName: 'Grace Owusu',
-      phone: '+233 26 555 7890',
-      email: 'grace.owusu@gmail.com',
-      loanType: 'Agricultural Loan',
-      amount: 75000,
-      disbursedAmount: 0,
-      interestRate: 12,
-      tenure: 18,
-      monthlyPayment: 4722,
-      totalPayable: 85000,
-      amountPaid: 0,
-      outstandingBalance: 75000,
-      status: 'pending_approval',
-      disbursementDate: null,
-      maturityDate: null,
-      nextPaymentDate: null,
-      daysOverdue: 0,
-      collateral: 'Land Title',
-      purpose: 'Poultry farming expansion',
-      guarantor: 'Samuel Owusu',
-      mobilebanker: 'Kofi Mensah',
-      creditScore: 720,
-      riskLevel: 'low'
-    },
-    {
-      id: 'LN004',
-      customerName: 'Emmanuel Adjei',
-      phone: '+233 24 777 8888',
-      email: 'emmanuel.adjei@gmail.com',
-      loanType: 'Mortgage',
-      amount: 200000,
-      disbursedAmount: 200000,
-      interestRate: 20,
-      tenure: 60,
-      monthlyPayment: 5297,
-      totalPayable: 317820,
-      amountPaid: 52970,
-      outstandingBalance: 264850,
-      status: 'active',
-      disbursementDate: '2024-01-01',
-      maturityDate: '2029-01-01',
-      nextPaymentDate: '2024-10-01',
-      daysOverdue: 0,
-      collateral: 'Property',
-      purpose: 'Home purchase',
-      guarantor: 'Mary Adjei',
-      mobilebanker: 'Kwame Asante',
-      creditScore: 800,
-      riskLevel: 'low'
+  const { companyLoans, fetchLoanAccounts } = useAccounts();
+  const { allCompanyLoans, loading, approveLoan } = useLoans();
+    useEffect(() => {
+    if (companyId) {
+      fetchLoanAccounts(companyId);
     }
-  ];
+  }, [companyId]);
 
   const loanApplications = [
-    {
-      id: 'APP001',
-      customerName: 'JosephAnkrah',
-      amount: 35000,
-      loanType: 'Business Loan',
-      purpose: 'Mobile money kiosk',
-      applicationDate: '2024-09-20',
-      status: 'under_review',
-      creditScore: 695,
-      documents: ['ID Card', 'Business Plan', 'Bank Statement'],
-      assignedOfficer: 'Yaw Opoku'
-    },
-    {
-      id: 'APP002',
-      customerName: 'Abena Frimpong',
-      amount: 8000,
-      loanType: 'Education Loan',
-      purpose: 'University fees',
-      applicationDate: '2024-09-22',
-      status: 'approved',
-      creditScore: 710,
-      documents: ['ID Card', 'Admission Letter', 'Guarantor Form'],
-      assignedOfficer: 'Yaw Opoku'
-    }
-  ];
+  ...companyLoans.filter(l => l.status !== 'approved')
+];
+
+
+console.log('Loan applications:', loanApplications);
+
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -215,15 +107,22 @@ const LoanManagement = () => {
 
   // Calculate portfolio metrics
   const portfolioMetrics = {
-    totalLoans: loans.length,
-    totalDisbursed: loans.reduce((sum, loan) => sum + loan.disbursedAmount, 0),
-    totalOutstanding: loans.reduce((sum, loan) => sum + loan.outstandingBalance, 0),
-    totalRepaid: loans.reduce((sum, loan) => sum + loan.amountPaid, 0),
-    overdueLoans: loans.filter(loan => loan.status === 'overdue').length,
-    overdueAmount: loans.filter(loan => loan.status === 'overdue').reduce((sum, loan) => sum + loan.outstandingBalance, 0),
-    activeLoans: loans.filter(loan => loan.status === 'active').length,
-    pendingApprovals: loans.filter(loan => loan.status === 'pending_approval').length
+    totalLoans: companyLoans.length,
+    totalDisbursed: companyLoans.reduce((sum, loan) => sum + loan.disbursedAmount, 0),
+    totalOutstanding: companyLoans.reduce((sum, loan) => sum + loan.outstandingBalance, 0),
+    totalRepaid: companyLoans.reduce((sum, loan) => sum + loan.amountPaid, 0),
+    overdueLoans: companyLoans.filter(loan => loan.status === 'overdue').length,
+    overdueAmount: companyLoans.filter(loan => loan.status === 'overdue').reduce((sum, loan) => sum + loan.outstandingBalance, 0),
+    activeLoans: companyLoans.filter(loan => loan.status === 'active').length,
+    pendingApprovals: companyLoans.filter(loan => loan.status === 'pending_approval').length
   };
+
+  const handleApproveLoan = async (data: ApprovePayload) => {
+     await approveLoan(data)
+     
+    setShowApprovalModal(false);
+    setSelectedLoan(null)
+  }
 
   const OverviewTab = () => (
     <div className="space-y-6">
@@ -400,42 +299,42 @@ const LoanManagement = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {loans.map((loan) => (
+              {companyLoans.map((loan) => (
                 <tr key={loan.id} className="hover:bg-gray-50">
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        {getLoanTypeIcon(loan.loanType)}
+                        {getLoanTypeIcon(loan.loantype)}
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">{loan.id}</div>
-                        <div className="text-sm text-gray-600">{loan.loanType}</div>
+                        <div className="text-sm text-gray-600">{loan.loantype}</div>
                       </div>
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    <div className="font-medium text-gray-900">{loan.customerName}</div>
-                    <div className="text-sm text-gray-600">{loan.phone}</div>
-                    <div className="text-sm text-gray-600">{loan.mobilebanker}</div>
+                    <div className="font-medium text-gray-900">{loan.customer_name}</div>
+                    <div className="text-sm text-gray-600">{loan.customer_phone}</div>
+                    <div className="text-sm text-gray-600">{loan.mobile_banker}</div>
                   </td>
                   <td className="py-4 px-6">
-                    <div className="font-medium text-gray-900">₵{loan.amount.toLocaleString()}</div>
-                    <div className="text-sm text-gray-600">{loan.interestRate}% • {loan.tenure} months</div>
-                    <div className="text-sm text-gray-600">₵{loan.monthlyPayment.toLocaleString()}/month</div>
+                    <div className="font-medium text-gray-900">₵{(loan.disbursedamount ?? 0).toLocaleString()}</div>
+                    <div className="text-sm text-gray-600">{loan.interestrateloan}% • {loan.loanterm} months</div>
+                    <div className="text-sm text-gray-600">₵{(loan.monthlypayment ?? 0).toLocaleString()}/month</div>
                   </td>
                   <td className="py-4 px-6">
                     <div className="space-y-1">
                       <div className="text-sm font-medium text-gray-900">
-                        ₵{loan.amountPaid.toLocaleString()} / ₵{loan.totalPayable.toLocaleString()}
+                        ₵{(loan.amountpaid ?? 0).toLocaleString()} / ₵{(loan.totalpayable ?? 0).toLocaleString()}
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
                           className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${(loan.amountPaid / loan.totalPayable) * 100}%` }}
+                          style={{ width: `${(parseFloat(loan.amountpaid) / parseFloat(loan.totalpayable)) * 100}%` }}
                         ></div>
                       </div>
                       <div className="text-xs text-gray-600">
-                        Outstanding: ₵{loan.outstandingBalance.toLocaleString()}
+                        Outstanding: ₵{(loan.outstandingbalance ?? 0).toLocaleString()}
                       </div>
                     </div>
                   </td>
@@ -507,8 +406,8 @@ const LoanManagement = () => {
                     <FileText className="text-purple-600" size={24} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{app.customerName}</h3>
-                    <p className="text-gray-600">{app.id} • Applied {app.applicationDate}</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{app.customer_name}</h3>
+                    <p className="text-gray-600">{app.id} • Applied {app.created_at}</p>
                   </div>
                   <span className={`px-3 py-1 text-sm rounded-full ${getStatusColor(app.status)}`}>
                     {app.status.replace('_', ' ')}
@@ -518,11 +417,11 @@ const LoanManagement = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div>
                     <div className="text-sm text-gray-600">Loan Amount</div>
-                    <div className="font-semibold text-gray-900">₵{app.amount.toLocaleString()}</div>
+                    <div className="font-semibold text-gray-900">₵{(app.disbursedamount ?? 0).toLocaleString()}</div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-600">Loan Type</div>
-                    <div className="font-semibold text-gray-900">{app.loanType}</div>
+                    <div className="font-semibold text-gray-900">{app.loantype}</div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-600">Credit Score</div>
@@ -537,21 +436,24 @@ const LoanManagement = () => {
 
                 <div className="mb-4">
                   <div className="text-sm text-gray-600 mb-2">Documents Submitted</div>
-                  <div className="flex flex-wrap gap-2">
+                  {/* <div className="flex flex-wrap gap-2">
                     {app.documents.map((doc, index) => (
                       <span key={index} className="px-2 py-1 bg-green-100 text-green-700 text-sm rounded">
                         {doc}
                       </span>
                     ))}
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                {app.status === 'under_review' && (
+                {app.status === 'requested' && (
                   <>
                     <button 
-                      onClick={() => setShowApprovalModal(true)}
+                      onClick={() => {
+                        setSelectedLoan(app)
+                        setShowApprovalModal(true)
+                      }}
                       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                     >
                       <CheckCircle size={16} />
@@ -563,7 +465,9 @@ const LoanManagement = () => {
                     </button>
                   </>
                 )}
-                <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <button 
+                onClick={() => setSelectedLoan(app)}      
+                className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                   View Details
                 </button>
               </div>
@@ -585,11 +489,11 @@ const LoanManagement = () => {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                  {getLoanTypeIcon(selectedLoan.loanType)}
+                  {getLoanTypeIcon(selectedLoan.loantype)}
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">{selectedLoan.id}</h2>
-                  <p className="text-gray-600">{selectedLoan.customerName} • {selectedLoan.loanType}</p>
+                  <p className="text-gray-600">{selectedLoan.customer_name} • {selectedLoan.loantype}</p>
                 </div>
               </div>
               <button 
@@ -608,12 +512,12 @@ const LoanManagement = () => {
                   <div className="flex items-center gap-2 text-sm">
                     <User size={14} />
                     <span className="text-gray-600">Name:</span>
-                    <span className="font-medium">{selectedLoan.customerName}</span>
+                    <span className="font-medium">{selectedLoan.customer_name}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Phone size={14} />
                     <span className="text-gray-600">Phone:</span>
-                    <span className="font-medium">{selectedLoan.phone}</span>
+                    <span className="font-medium">{selectedLoan.customer_phone}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Mail size={14} />
@@ -639,23 +543,23 @@ const LoanManagement = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Principal Amount:</span>
-                    <span className="font-medium">₵{selectedLoan.amount.toLocaleString()}</span>
+                    <span className="font-medium">₵{(selectedLoan.disbursedamount ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Interest Rate:</span>
-                    <span className="font-medium">{selectedLoan.interestRate}%</span>
+                    <span className="font-medium">{selectedLoan.interestrateloan}%</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Tenure:</span>
-                    <span className="font-medium">{selectedLoan.tenure} months</span>
+                    <span className="font-medium">{selectedLoan.loanterm} months</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Monthly Payment:</span>
-                    <span className="font-medium">₵{selectedLoan.monthlyPayment.toLocaleString()}</span>
+                    <span className="font-medium">₵{(selectedLoan.monthlypayment ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Total Payable:</span>
-                    <span className="font-medium">₵{selectedLoan.totalPayable.toLocaleString()}</span>
+                    <span className="font-medium">₵{(selectedLoan.totalpayable ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Purpose:</span>
@@ -670,21 +574,27 @@ const LoanManagement = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Amount Paid:</span>
-                    <span className="font-medium text-green-600">₵{selectedLoan.amountPaid.toLocaleString()}</span>
+                    <span className="font-medium text-green-600">₵{(selectedLoan.amountpaid ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Outstanding:</span>
-                    <span className="font-medium text-red-600">₵{selectedLoan.outstandingBalance.toLocaleString()}</span>
+                    <span className="font-medium text-red-600">₵{(selectedLoan.outstandingbalance ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                     <div 
                       className="bg-green-600 h-3 rounded-full" 
-                      style={{ width: `${(selectedLoan.amountPaid / selectedLoan.totalPayable) * 100}%` }}
+                      style={{ width: `${(parseFloat(selectedLoan.amountpaid) / parseFloat(selectedLoan.totalpayable)) * 100}%` }}
                     ></div>
                   </div>
                   <div className="text-sm text-gray-600">
-                    {Math.round((selectedLoan.amountPaid / selectedLoan.totalPayable) * 100)}% Complete
+                    {Math.round(parseFloat(selectedLoan.amountpaid) / parseFloat(selectedLoan.totalpayable)) * 100}% Complete
                   </div>
+                  <div className="text-sm text-gray-600">
+                  {`${Math.round(
+                      (parseFloat(selectedLoan.amountpaid ?? "0") / parseFloat(selectedLoan.totalpayable ?? "0"))
+                    ) * 100}%`} Complete
+                </div>
+
                   {selectedLoan.nextPaymentDate && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Next Payment:</span>
@@ -707,7 +617,7 @@ const LoanManagement = () => {
                       <div className="text-sm text-gray-600">September 15, 2024</div>
                     </div>
                   </div>
-                  <div className="text-green-600 font-semibold">₵{selectedLoan.monthlyPayment.toLocaleString()}</div>
+                  <div className="text-green-600 font-semibold">₵{(selectedLoan.monthlypayment ?? 0).toLocaleString()}</div>
                 </div>
                 
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
@@ -718,7 +628,7 @@ const LoanManagement = () => {
                       <div className="text-sm text-gray-600">August 15, 2024</div>
                     </div>
                   </div>
-                  <div className="text-green-600 font-semibold">₵{selectedLoan.monthlyPayment.toLocaleString()}</div>
+                  <div className="text-green-600 font-semibold">₵{(selectedLoan.monthlypayment ?? 0).toLocaleString()}</div>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
@@ -729,7 +639,7 @@ const LoanManagement = () => {
                       <div className="text-sm text-gray-600">July 15, 2024</div>
                     </div>
                   </div>
-                  <div className="text-green-600 font-semibold">₵{selectedLoan.monthlyPayment.toLocaleString()}</div>
+                  <div className="text-green-600 font-semibold">₵{(selectedLoan.monthlypayment ?? 0).toLocaleString()}</div>
                 </div>
               </div>
             </div>
@@ -1010,9 +920,9 @@ const LoanManagement = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Loan ID</label>
                 <select className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option>Select loan</option>
-                  {loans.filter(loan => loan.status === 'active').map(loan => (
+                  {companyLoans.filter(loan => loan.status === 'active').map(loan => (
                     <option key={loan.id} value={loan.id}>
-                      {loan.id} - {loan.customerName}
+                      {loan.id} - {loan.customer_name}
                     </option>
                   ))}
                 </select>
@@ -1082,90 +992,176 @@ const LoanManagement = () => {
     );
   };
 
-  const ApprovalModal = () => {
-    if (!showApprovalModal) return null;
+  const ApprovalModal = (props: {interestmethod: string}) => {
+    console.log(props.interestmethod)
+  if (!showApprovalModal) return null;
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl max-w-lg w-full">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Loan Approval</h2>
-              <button 
-                onClick={() => setShowApprovalModal(false)}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+  const [form, setForm] = useState<ApprovalForm>({
+    disbursedamount: Number(selectedLoan?.disbursedamount) || 0,
+    interestRate: selectedLoan?.interestrateloan || 0,
+    loanterm: selectedLoan?.loanterm || 12,
+    disbursementdate: "",
+    notes: "",
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]:
+        e.target.type === "number"
+          ? Number(value)
+          : value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    console.log('Submit');
+    if (!selectedLoan) return;
+    console.log('Submit');
+    console.log('Submitss');
+    if (form.disbursedamount <= 0) {
+      alert("Approved amount must be greater than zero");
+      return;
+    }
+
+    const payload = {
+      loanId: selectedLoan.id || '',
+      disbursedamount: form.disbursedamount,
+      interestrateloan: form.interestRate,
+      loanterm: form.loanterm,
+      disbursementdate: form.disbursementdate,
+      notes: form.notes,
+      approvedby: userUUID,
+      created_by_type: userRole,
+      interestmethod: props.interestmethod
+    };
+    console.log(payload);
+
+    await handleApproveLoan(payload);
+
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-lg w-full">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">
+              Loan Approval
+            </h2>
+            <button
+              onClick={() => setShowApprovalModal(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {/* Approved Amount */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Approval Amount (₵)
+              </label>
+              <input
+                type="number"
+                name="disbursedamount"
+                value={form.disbursedamount}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2"
+              />
+            </div>
+
+            {/* Interest */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Interest Rate (%)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                name="interestRate"
+                value={form.interestRate}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2"
+              />
+            </div>
+
+            {/* Tenure */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Tenure (Months)
+              </label>
+              <select
+                name="loanterm"
+                value={form.loanterm}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2"
               >
-                ✕
-              </button>
+                {[3, 6, 12, 18, 24, 36, 60].map((m) => (
+                  <option key={m} value={m}>
+                    {m} months
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Approval Amount (₵)</label>
-                <input
-                  type="number"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Approved loan amount"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Interest Rate (%)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Final interest rate"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tenure (Months)</label>
-                <select className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>3 months</option>
-                  <option>6 months</option>
-                  <option>12 months</option>
-                  <option>18 months</option>
-                  <option>24 months</option>
-                  <option>36 months</option>
-                  <option>60 months</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Disbursement Date</label>
-                <input
-                  type="date"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Conditions/Notes</label>
-                <textarea
-                  rows={3}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Any conditions or special notes"
-                ></textarea>
-              </div>
+            {/* Disbursement Date */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Disbursement Date
+              </label>
+              <input
+                type="date"
+                name="disbursementdate"
+                value={form.disbursementdate}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2"
+              />
             </div>
 
-            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200">
-              <button 
-                onClick={() => setShowApprovalModal(false)}
-                className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
-                Approve Loan
-              </button>
+            {/* Notes */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Conditions / Notes
+              </label>
+              <textarea
+                name="notes"
+                rows={3}
+                value={form.notes}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-3 py-2"
+              />
             </div>
+          </div>
+
+          <div className="flex gap-3 mt-6 pt-4 border-t">
+            <button
+              onClick={() => {setShowApprovalModal(false)
+                setSelectedLoan(null)
+              }}
+              className="flex-1 border px-4 py-2 rounded-lg"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg"
+            >
+              Approve Loan
+            </button>
           </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   return (
     <div className="min-h-screen bg-white">
@@ -1222,7 +1218,7 @@ const LoanManagement = () => {
       <LoanDetailModal />
       <NewLoanModal />
       <RepaymentModal />
-      <ApprovalModal />
+      <ApprovalModal interestmethod={selectedLoan?.interestmethod ?? ''}/>
     </div>
   );
 };

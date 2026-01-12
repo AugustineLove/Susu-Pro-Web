@@ -37,6 +37,7 @@ import SubscribeComponent from './pages/dashboard/Subscribe';
 import CustomerDetailsPage from './pages/dashboard/CustomerDetails';
 import StaffManagement from './pages/dashboard/Staff';
 import LoanManagement from './pages/dashboard/Loans';
+import { LoansProvider } from './contexts/dashboard/Loan';
 
 function App() {
   return (
@@ -69,7 +70,9 @@ function App() {
                     <StaffProvider>
                       <AccountsProvider>
                         <FinanceProvider>
-                          <DashboardLayout />
+                          <LoansProvider>
+                            <DashboardLayout />
+                          </LoansProvider>
                         </FinanceProvider>
                       </AccountsProvider>
                     </StaffProvider>

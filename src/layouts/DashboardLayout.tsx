@@ -27,16 +27,16 @@ const DashboardLayout: React.FC = () => {
   const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Customers', href: '/dashboard/clients', icon: Users },
-    { name: 'Contributions', href: '/dashboard/contributions', icon: PiggyBank },
+    { name: 'Deposits', href: '/dashboard/contributions', icon: PiggyBank },
     { name: 'Withdrawals', href: '/dashboard/withdrawals', icon: ArrowUpDown },
     ...(userPermissions?.ALTER_FINANCE
-      ? [{ name: 'Expense', href: '/dashboard/expenses', icon: BarChart3 }]
+      ? [{ name: 'Finance', href: '/dashboard/expenses', icon: BarChart3 }]
       : []),
     { name: 'Reports', href: '/dashboard/reports', icon: FileText },
     // { name: 'Staffs', href: '/dashboard/staffs', icon: Users },
-    // { name: 'Loans', href: '/dashboard/loans', icon: CreditCard },
+    ...(userPermissions?.LOAN_PRIVILEGES ? [{ name: 'Loans', href: '/dashboard/loans', icon: CreditCard }] : []),
     { name: 'Chat', href: '/dashboard/chat', icon: Chat },
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+   ...(userPermissions?.SETTINGS_ACCESS ? [{ name: 'Settings', href: '/dashboard/settings', icon: Settings }] : [])
   ];
 
   const handleLogout = () => {

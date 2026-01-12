@@ -45,7 +45,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
   // Fetch both assets + expenses
   const fetchFinanceData = async () => {
         try {
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/financials/get-financials/${companyId}`);
+      const res = await fetch(`http://localhost:5000/api/financials/get-financials/${companyId}`);
       const json = await res.json();
       if (json.status === "success") {
         setData(json.data);

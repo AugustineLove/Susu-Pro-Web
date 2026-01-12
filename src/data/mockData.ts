@@ -34,11 +34,11 @@ export interface Commission {
 }
 
 export interface Account {
-  id: string;
-  created_at: string;
+  id?: string;
+  created_at?: string;
   customer_id: string;
   account_type: string;
-  balance: Number;
+  balance?: Number;
   company_id: string;
   created_by: string;
   account_number?: string;
@@ -54,12 +54,30 @@ export interface Account {
   minimumBalance?: number;
   interestRate?: number;
   // Loan specific
-  loanAmount?: number;
-  interestRateLoan?: number;
-  loanTerm?: number; // in months
+  interestrateloan?: number;
+  loanterm?: number; // in months
   collateral?: string;
   guarantor?: string;
-
+  guarantorPhone?: string;
+  created_by_type: string;
+  loantype?: string;
+  loanamount?: string;
+  duration?: string;
+  purpose?: string;
+  disbursedamount?: string;
+  disbursementDate?: string;
+  maturityDate?: string;
+  daysOverdue?: number;
+  status?: string;
+  monthlypayment?: string;
+  amountpaid?: string;
+  outstandingbalance?: string;
+  nextPaymentDate?: string;
+  totalpayable?:string;
+  customer_name?: string;
+  customer_phone?: string;
+  mobile_banker?: string;
+  interestmethod?: string;
 }
 
 export interface Customer {

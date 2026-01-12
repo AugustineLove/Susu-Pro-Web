@@ -34,7 +34,7 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return;
       }
 
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/staff/?company_id=${companyId}`);
+      const res = await fetch(`http://localhost:5000/api/staff/?company_id=${companyId}`);
       if (res.ok) {
         const data = await res.json();
         setStaffList(data.data);
