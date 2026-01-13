@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 // import { Asset, Budget, Expense } from '../../data/mockData';
 import { useFinance } from '../../contexts/dashboard/Finance';
-import { companyId, formatDate, userUUID } from '../../constants/appConstants';
+import { companyId, formatDate, userPermissions, userUUID } from '../../constants/appConstants';
 import { Account, Asset, Budget, Commission, Customer, Expense } from '../../data/mockData';
 import toast from 'react-hot-toast';
 import { AssetModal, BudgetModal, ExpenseModal, PaymentModal } from '../../components/financeModals';
@@ -635,6 +635,11 @@ const calculateOperationalMetrics = () => {
     }
   };
 
+  useEffect(() => {
+  if (!userPermissions?.ALTER_FINANCE) {
+    setActiveTab('budget'); // Automatically select Budget
+  }
+}, [userPermissions]);
 
   // Enhanced Overview Tab Component
   const OverviewTab = () => {
@@ -1111,13 +1116,17 @@ const calculateOperationalMetrics = () => {
                 Plan and monitor departmental budgets
               </p>
             </div>
-            <button
+            {
+              userPermissions?.ALTER_FINANCE && (
+                <button
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
               onClick={() => setShowBudgetModal(true)}
             >
               <Plus className="w-4 h-4" />
               <span>Create Float</span>
             </button>
+              )
+            }
           </div>
 
           {/* Budget Overview Cards */}
@@ -1601,30 +1610,46 @@ const AssetsTab = () => {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200 px-6">
-        <nav className="flex space-x-8">
-          {[
-            { id: 'overview', label: 'Overview', icon: BarChart3 },
-            { id: 'revenue', label: 'Revenue', icon: TrendingUp },
-            { id: 'expenses', label: 'Expenses', icon: Banknote },
-            { id: 'assets', label: 'Assets', icon: Building2 },
-            { id: 'budget', label: 'Budget', icon: PieChart },
-            { id: 'analytics', label: 'Analytics', icon: LineChart }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 py-4 border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              <span className="font-medium">{tab.label}</span>
-            </button>
-          ))}
+   {/* Navigation Tabs */}
+<div className="bg-white border-b border-gray-200 px-6">
+  <nav className="flex space-x-8">
+    {userPermissions?.ALTER_FINANCE
+      ? [
+          { id: 'overview', label: 'Overview', icon: BarChart3 },
+          { id: 'revenue', label: 'Revenue', icon: TrendingUp },
+          { id: 'expenses', label: 'Expenses', icon: Banknote },
+          { id: 'assets', label: 'Assets', icon: Building2 },
+          { id: 'budget', label: 'Budget', icon: PieChart },
+          { id: 'analytics', label: 'Analytics', icon: LineChart }
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center space-x-2 py-4 border-b-2 transition-colors ${
+              activeTab === tab.id
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            <span className="font-medium">{tab.label}</span>
+          </button>
+        ))
+      : (
+        // Only Budget tab
+        <button
+          key="budget"
+          onClick={() => setActiveTab('budget')}
+          className={`flex items-center space-x-2 py-4 border-b-2 transition-colors ${
+            activeTab === 'budget'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <PieChart className="w-4 h-4" />
+          <span className="font-medium">Budget</span>
+        </button>
+            )}
         </nav>
       </div>
 

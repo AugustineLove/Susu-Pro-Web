@@ -13,7 +13,7 @@ import { useFinance } from '../../contexts/dashboard/Finance';
 const Overview: React.FC = () => {
  
   const { stats } = useStats();
-  const { transactions, approveTransaction, refreshTransactions, rejectTransaction } = useTransactions();
+  const { transactions, totals, approveTransaction, refreshTransactions, rejectTransaction } = useTransactions();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [editingClient, setEditingClient] = useState<Customer | null>(null);
@@ -47,15 +47,23 @@ const Overview: React.FC = () => {
       change: '+12%'
     },
     {
-      title: 'Total Commissions',
-      value: `¢${stats?.totalCommissions}` || 0,
-      subtitle: 'This month',
+      title: 'Total Deposits',
+      value: `¢${totals?.totalDeposits}` || 0,
+      subtitle: 'All total customer deposits',
       icon: PiggyBank,
       color: 'green',
       change: '+8.2%'
     },
     {
-      title: 'Total Balance',
+      title: 'Total Withdrawals',
+      value: `¢${totals?.totalApprovedWithdrawals}` || 0,
+      subtitle: 'All total customer withdrawals',
+      icon: PiggyBank,
+      color: 'green',
+      change: '+8.2%'
+    },
+    {
+      title: 'Customer Balance',
       value: `¢${stats?.totalBalance}` || 0,
       subtitle: 'Available funds',
       icon: TrendingUp,

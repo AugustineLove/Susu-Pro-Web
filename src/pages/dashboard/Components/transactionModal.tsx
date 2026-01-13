@@ -17,7 +17,7 @@ import {
 import { useCustomers } from "../../../contexts/dashboard/Customers";
 import { useStaff } from "../../../contexts/dashboard/Staff";
 import { useAccounts } from "../../../contexts/dashboard/Account";
-import { companyId, companyName } from "../../../constants/appConstants";
+import { companyId, companyName, userRole } from "../../../constants/appConstants";
 import { useTransactions } from "../../../contexts/dashboard/Transactions";
 import toast from 'react-hot-toast';
 
@@ -79,6 +79,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
   const { customers, customerLoading: customersLoading, refreshCustomers } = useCustomers();
   const { staffList, loading: staffLoading } = useStaff();
   const { accounts, refreshAccounts, setAccounts } = useAccounts();
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [formData, setFormData] = useState({
     account_id: transaction?.account_id || '',
@@ -88,12 +89,11 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
     transaction_date: transaction?.transaction_date 
       ? new Date(transaction.transaction_date).toISOString().slice(0, 16)
       : new Date().toISOString().slice(0, 16),
-    staked_by: transaction?.staked_by || '',
+    staked_by: selectedCustomer?.registered_by || transaction?.staked_by || '',
     company_id: companyId
   });
 
   const [customerSearch,  setCustomerSearch] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { addTransaction, refreshTransactions, loading } = useTransactions();
@@ -399,11 +399,11 @@ const filteredCustomers = customers.filter(customer =>
                 )}
               </div>
 
-              {/* Account Selection */}
-                {selectedCustomer && (
+              {/* Account Selection */} 
+{selectedCustomer && (
   <div>
     {loadingAccounts ? (
-      // 🔹 Loader Section
+      /* 🔹 Loader */
       <div className="flex justify-center items-center py-10">
         <svg
           className="w-6 h-6 animate-spin text-emerald-500"
@@ -418,17 +418,17 @@ const filteredCustomers = customers.filter(customer =>
             r="10"
             stroke="currentColor"
             strokeWidth="4"
-          ></circle>
+          />
           <path
             className="opacity-75"
             fill="currentColor"
             d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-          ></path>
+          />
         </svg>
         <span className="ml-3 text-gray-600">Loading accounts...</span>
       </div>
     ) : accounts.length > 0 ? (
-      // 🔹 Accounts Section
+      /* 🔹 Accounts */
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
           <Wallet className="w-4 h-4 mr-2 text-gray-500" />
@@ -437,81 +437,116 @@ const filteredCustomers = customers.filter(customer =>
         </label>
 
         <div className="space-y-3">
-          {accounts.map((account) => (
-            <div
-              key={account.id}
-              onClick={() => selectAccount(account)}
-              className={`p-4 border-2 rounded-xl cursor-pointer transition-all hover:shadow-md ${
-                selectedAccount?.id === account.id
-                  ? 'border-emerald-500 bg-emerald-50 shadow-md'
-                  : 'border-gray-200 hover:border-emerald-300'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div
-                    className={`p-2 rounded-lg ${
-                      selectedAccount?.id === account.id
-                        ? 'bg-emerald-100'
-                        : 'bg-gray-100'
-                    }`}
-                  >
-                    <Building2
-                      className={`w-5 h-5 ${
-                        selectedAccount?.id === account.id
-                          ? 'text-emerald-600'
-                          : 'text-gray-600'
-                      }`}
-                    />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      {account.account_number}
-                    </div>
+          {accounts.map((account) => {
+            const isNormalAccount = account.account_type.toLowerCase() === "normal";
+            const isTellerRestricted =
+              userRole === "teller" && isNormalAccount;
+
+            const isSelected = selectedAccount?.id === account.id;
+
+            return (
+              <div
+                key={account.id}
+                onClick={() => {
+                  if (!isTellerRestricted) {
+                    selectAccount(account);
+                  }
+                }}
+                className={`
+                  p-4 border-2 rounded-xl transition-all
+                  ${
+                    isTellerRestricted
+                      ? "opacity-40 cursor-not-allowed bg-gray-50"
+                      : "cursor-pointer hover:shadow-md"
+                  }
+                  ${
+                    isSelected
+                      ? "border-emerald-500 bg-emerald-50 shadow-md"
+                      : "border-gray-200 hover:border-emerald-300"
+                  }
+                `}
+              >
+                <div className="flex items-center justify-between">
+                  {/* Left */}
+                  <div className="flex items-center space-x-3">
                     <div
-                      className={`text-sm ${
-                        selectedAccount?.id === account.id
-                          ? 'text-emerald-700'
-                          : 'text-gray-500'
+                      className={`p-2 rounded-lg ${
+                        isSelected
+                          ? "bg-emerald-100"
+                          : "bg-gray-100"
                       }`}
                     >
-                      {account.account_type.charAt(0).toUpperCase() +
-                        account.account_type.slice(1)}{' '}
-                      Account
+                      <Building2
+                        className={`w-5 h-5 ${
+                          isSelected
+                            ? "text-emerald-600"
+                            : "text-gray-600"
+                        }`}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {account.account_number}
+                      </div>
+                      <div
+                        className={`text-sm ${
+                          isSelected
+                            ? "text-emerald-700"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {account.account_type.charAt(0).toUpperCase() +
+                          account.account_type.slice(1)}{" "}
+                        Account
+                      </div>
+
+                      {isTellerRestricted && (
+                        <div className="text-xs text-red-500 mt-1">
+                          Not accessible
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right */}
+                  <div className="text-right">
+                    <div
+                      className={`text-lg font-semibold ${
+                        isSelected
+                          ? "text-emerald-600"
+                          : "text-gray-900"
+                      }`}
+                    >
+                      ¢
+                      {account.balance
+                        ? account.balance.toLocaleString()
+                        : "0"}
+                    </div>
+                    <div
+                      className={`text-xs ${
+                        isSelected
+                          ? "text-emerald-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      Available Balance
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div
-                    className={`text-lg font-semibold ${
-                      selectedAccount?.id === account.id
-                        ? 'text-emerald-600'
-                        : 'text-gray-900'
-                    }`}
-                  >
-                    ¢{account.balance ? account.balance.toLocaleString() : '0'}
-                  </div>
-                  <div
-                    className={`text-xs ${
-                      selectedAccount?.id === account.id
-                        ? 'text-emerald-600'
-                        : 'text-gray-500'
-                    }`}
-                  >
-                    Available Balance
-                  </div>
-                </div>
-              </div>
 
-              {selectedAccount?.id === account.id && (
-                <div className="mt-2 flex justify-end">
-                  <CheckCircle className="w-5 h-5 text-emerald-500" />
-                </div>
-              )}
-            </div>
-          ))}
+                {/* Selected Icon */}
+                {isSelected && !isTellerRestricted && (
+                  <div className="mt-2 flex justify-end">
+                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
+        {/* Error */}
         {errors.account_id && (
           <p className="mt-2 text-sm text-red-600 flex items-center">
             <svg
@@ -530,16 +565,14 @@ const filteredCustomers = customers.filter(customer =>
         )}
       </div>
     ) : (
-      // 🔹 Empty State
+      /* 🔹 Empty State */
       <div className="text-gray-500 text-center py-6">
         No accounts found for this customer.
       </div>
     )}
   </div>
 )}
-
-              </div>
-
+  </div>
 
               {/* Transaction Details Section */}
               <div className="md:col-span-2 mt-6">
@@ -570,19 +603,19 @@ const filteredCustomers = customers.filter(customer =>
                 </select>
               </div>
 
-              <FormField
-                label="Amount"
-                name="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={formData.amount}
-                onChange={handleChange}
-                required
-                error={errors.amount}
-                icon={<DollarSign className="w-4 h-4" />}
-                placeholder="Enter amount (e.g., 100.00)"
-              />
+             <FormField
+              label="Amount"
+              name="amount"
+              type="text"
+              // inputMode="decimal"
+              value={formData.amount}
+              onChange={handleChange}
+              required
+              error={errors.amount}
+              icon={<DollarSign className="w-4 h-4" />}
+              placeholder="Enter amount (e.g., 100.00)"
+            />
+
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
@@ -609,41 +642,56 @@ const filteredCustomers = customers.filter(customer =>
               />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <UserCheck className="w-4 h-4 mr-2 text-gray-500" />
-                  Created By (Mobile Banker)
-                  <span className="text-red-500 ml-1">*</span>
-                </label>
-                <select
-                  name="staked_by"
-                  value={formData.staked_by}
-                  onChange={handleChange}
-                  required
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 transition-colors ${
-                    errors.staked_by 
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-300 focus:border-emerald-500'
-                  }`}
-                  disabled={staffLoading}
-                >
-                  <option value="">
-                    {staffLoading ? 'Loading staff...' : 'Select Mobile Banker'}
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <UserCheck className="w-4 h-4 mr-2 text-gray-500" />
+              Created By (Mobile Banker)
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+
+            <select
+              name="staked_by"
+              value={formData.staked_by || selectedCustomer?.registered_by || ''}
+              onChange={handleChange}
+              required
+              disabled={staffLoading}
+              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 transition-colors ${
+                errors.staked_by
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:border-emerald-500'
+              }`}
+            >
+              {/* Show the registered banker as the selected option */}
+              {selectedCustomer?.registered_by && (
+                <option value={selectedCustomer.registered_by}>
+                  {selectedCustomer.registered_by_name} 
+                </option>
+              )}
+
+              {/* List other bankers, skipping the one already selected */}
+              {mobileBankers
+                .filter((banker) => banker.id !== selectedCustomer?.registered_by)
+                .map((banker) => (
+                  <option key={banker.staff_id} value={banker.id}>
+                    {banker.full_name} ({banker.staff_id})
                   </option>
-                  {mobileBankers.map((banker) => (
-                    <option key={banker.staff_id} value={banker.id}>
-                      {banker.full_name} ({banker.staff_id})
-                    </option>
-                  ))}
-                </select>
-                {errors.staked_by && (
-                  <p className="mt-1 text-sm text-red-600 flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {errors.staked_by}
-                  </p>
-                )}
-              </div>
+                ))}
+            </select>
+
+            {errors.staked_by && (
+              <p className="mt-1 text-sm text-red-600 flex items-center">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {errors.staked_by}
+              </p>
+            )}
+          </div>
+
+
             </div>
           </div>
         </div>
