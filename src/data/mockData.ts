@@ -215,6 +215,7 @@ export interface Budget {
   date: string;
   allocated: number;
   spent?: number;
+  remaining?: number;
 }
 
 export const mockClients: Client[] = [

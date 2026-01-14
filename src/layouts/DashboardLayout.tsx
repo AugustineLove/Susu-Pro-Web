@@ -30,7 +30,7 @@ const DashboardLayout: React.FC = () => {
     { name: 'Deposits', href: '/dashboard/contributions', icon: PiggyBank },
     { name: 'Withdrawals', href: '/dashboard/withdrawals', icon: ArrowUpDown },
     { name: 'Finance', href: '/dashboard/expenses', icon: BarChart3 },
-    { name: 'Reports', href: '/dashboard/reports', icon: FileText },
+    ...(userPermissions?.VIEW_BRIEFING ? [{ name: 'Reports', href: '/dashboard/reports', icon: FileText }] : []),
     // { name: 'Staffs', href: '/dashboard/staffs', icon: Users },
     ...(userPermissions?.LOAN_PRIVILEGES ? [{ name: 'Loans', href: '/dashboard/loans', icon: CreditCard }] : []),
     { name: 'Chat', href: '/dashboard/chat', icon: Chat },

@@ -350,7 +350,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setError(null);
       
       const res = await fetch(
-        `https://susu-pro-backend.onrender.com/api/transactions/${transactionId}/approve`,
+        `http://localhost:5000/api/transactions/${transactionId}/approve`,
         {
           method: 'POST',
           headers: {

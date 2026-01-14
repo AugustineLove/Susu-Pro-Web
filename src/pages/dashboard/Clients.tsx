@@ -244,7 +244,7 @@ const Clients: React.FC = () => {
         </div>
       </div>
 
-      {/* Enhanced Stats Cards */}
+      { userPermissions.VIEW_BRIEFING && (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
@@ -318,6 +318,7 @@ const Clients: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Enhanced Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -444,7 +445,9 @@ const Clients: React.FC = () => {
                 </tr>
               ) : (
                 filteredClients.map((customer) => (
-                  <tr key={customer.customer_id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={customer.customer_id} 
+                  onClick={() => navigate(`customer-details/${customer.customer_id}`)}
+                  className="hover:bg-gray-50 transition-colors hover:shadow-md cursor-pointer">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -485,7 +488,7 @@ const Clients: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         {userPermissions.MANAGE_STAFF && (
                           <button
-                            onClick={() => setEditingClient(customer)}
+                            onClick={(e) => {e.stopPropagation(); setEditingClient(customer)}}
                             className="text-indigo-600 hover:text-indigo-900 transition-colors"
                             title="Edit customer"
                           >
@@ -494,7 +497,7 @@ const Clients: React.FC = () => {
                         )}
                         {userPermissions.MANAGE_STAFF && (
                           <button
-                            onClick={() => handleDeleteClick(customer)}
+                            onClick={(e) => {e.stopPropagation(); handleDeleteClick(customer)}}
                             className="text-red-600 hover:text-red-900 transition-colors"
                             title="Delete customer"
                           >
@@ -503,7 +506,7 @@ const Clients: React.FC = () => {
                         )}
                         <button
                           className="text-gray-600 hover:text-gray-900 transition-colors"
-                          onClick={() => navigate(`customer-details/${customer.customer_id}`)}
+                          onClick={(e) => {e.stopPropagation(); navigate(`customer-details/${customer.customer_id}`)}}
                           title="View details"
                         >
                           <MoreVertical className="h-4 w-4" />

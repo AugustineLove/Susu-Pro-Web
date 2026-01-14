@@ -38,6 +38,7 @@ import CustomerDetailsPage from './pages/dashboard/CustomerDetails';
 import StaffManagement from './pages/dashboard/Staff';
 import LoanManagement from './pages/dashboard/Loans';
 import { LoansProvider } from './contexts/dashboard/Loan';
+import BudgetDetails from './pages/dashboard/BudgetDetails';
 
 function App() {
   return (
@@ -85,6 +86,7 @@ function App() {
             <Route path="clients" element={<Clients />} />
             <Route path="contributions" element={<Contributions />} />
             <Route path="all-transactions" element={<AllTransactions />} />
+            <Route path="expenses/budgets/:id" element={<BudgetDetails />} />
             <Route path="withdrawals" element={<Withdrawals />} />
             <Route path="reports" element={<Reports />} />
             <Route path="chat" element={<Chat />} />

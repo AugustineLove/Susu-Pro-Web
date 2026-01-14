@@ -35,6 +35,7 @@ import { AssetModal, BudgetModal, ExpenseModal, PaymentModal } from '../../compo
 import { useCustomers } from '../../contexts/dashboard/Customers';
 import { useAccounts } from '../../contexts/dashboard/Account';
 import { useTransactions } from '../../contexts/dashboard/Transactions';
+import { useNavigate } from 'react-router-dom';
 
 interface FinanceData{
   expenses: Expense[];
@@ -110,6 +111,7 @@ const RevenueModal: React.FC<ModalProps> = ({
   const selectedCustomer = customers.find(
     (c) => c.id === formData.customer_id
   ) || null;
+  const navigate = useNavigate();
 
   // Fetch accounts when customer + commissions
   useEffect(() => {
@@ -637,7 +639,7 @@ const calculateOperationalMetrics = () => {
 
   useEffect(() => {
   if (!userPermissions?.ALTER_FINANCE) {
-    setActiveTab('budget'); // Automatically select Budget
+    setActiveTab('budget');
   }
 }, [userPermissions]);
 
@@ -1101,19 +1103,19 @@ const calculateOperationalMetrics = () => {
 
 
 // Budget Tab Component
-    const BudgetTab = () => {
+    const FloatTab = () => {
       const totalAllocated = budgets.reduce((sum, b) => Number(sum) + Number(b.allocated), 0);
       const totalSpent = budgets.reduce((sum, b) => Number(sum) + Number(b.spent), 0);
       const totalRemaining = totalAllocated - totalSpent;
-
+      const navigate = useNavigate();
       return (
         <div className="space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Budget Planning</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Float Planning</h2>
               <p className="text-sm text-gray-600 mt-1">
-                Plan and monitor departmental budgets
+                Plan and monitor departmental floats
               </p>
             </div>
             {
@@ -1172,7 +1174,7 @@ const calculateOperationalMetrics = () => {
           {/* Budget Categories */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">
-              Budget by Category
+              Float by Category
             </h3>
             <div className="space-y-6">
               {budgets.length === 0 ? (
@@ -1187,7 +1189,8 @@ const calculateOperationalMetrics = () => {
                   return (
                     <div
                       key={budget.id}
-                      className="border border-gray-100 rounded-lg p-4"
+                      onClick={() => navigate(`budgets/${budget.id}`, { state: { budget } })}
+                      className="border border-gray-100 rounded-lg p-4 hover:shadow-md cursor-pointer transition-shadow"
                     >
                       <div className="flex justify-between items-center mb-3">
                         <h4 className="font-medium text-gray-900">
@@ -1619,7 +1622,7 @@ const AssetsTab = () => {
           { id: 'revenue', label: 'Revenue', icon: TrendingUp },
           { id: 'expenses', label: 'Expenses', icon: Banknote },
           { id: 'assets', label: 'Assets', icon: Building2 },
-          { id: 'budget', label: 'Budget', icon: PieChart },
+          { id: 'budget', label: 'Float', icon: PieChart },
           { id: 'analytics', label: 'Analytics', icon: LineChart }
         ].map((tab) => (
           <button
@@ -1635,7 +1638,7 @@ const AssetsTab = () => {
             <span className="font-medium">{tab.label}</span>
           </button>
         ))
-      : (
+      : [(
         // Only Budget tab
         <button
           key="budget"
@@ -1647,9 +1650,25 @@ const AssetsTab = () => {
           }`}
         >
           <PieChart className="w-4 h-4" />
-          <span className="font-medium">Budget</span>
+          <span className="font-medium">Float</span>
         </button>
-            )}
+            ),
+            (
+        // Only Budget tab
+        <button
+          key="expenses"
+          onClick={() => setActiveTab('expenses')}
+          className={`flex items-center space-x-2 py-4 border-b-2 transition-colors ${
+            activeTab === 'expenses'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Banknote className="w-4 h-4" />
+          <span className="font-medium">Expense</span>
+        </button>
+            ),
+            ]}
         </nav>
       </div>
 
@@ -1659,7 +1678,7 @@ const AssetsTab = () => {
         {activeTab === 'revenue' && <RevenueTab />}
         {activeTab === 'expenses' && <ExpensesTab />}
         {activeTab === 'assets' && <AssetsTab />}
-        {activeTab === 'budget' && <BudgetTab />}
+        {activeTab === 'budget' && <FloatTab />}
         {activeTab === 'analytics' && <AnalyticsTab />}
       </div>
 
