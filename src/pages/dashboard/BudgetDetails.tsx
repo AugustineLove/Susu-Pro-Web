@@ -33,7 +33,7 @@ const BudgetDetails = () => {
   const getRemainingColor = (remaining: number) => {
     if (remaining > 5000) return 'text-green-600 font-semibold';
     if (remaining > 1000) return 'text-yellow-600 font-semibold';
-    return 'text-red-600';
+    return 'text-red-600 font-semibold';
   }
 
   return (
