@@ -3,7 +3,7 @@ import { Users, PiggyBank, ArrowUpDown, TrendingUp, Plus, Eye, Download } from '
 import { Customer, mockClients, mockContributions, mockWithdrawals, Transaction } from '../../data/mockData';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
 import { useTransactions } from '../../contexts/dashboard/Transactions';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ClientModal } from './Components/clientModal';
 import { useCustomers } from '../../contexts/dashboard/Customers';
 import {TransactionModal} from './Components/transactionModal';
@@ -26,7 +26,7 @@ const Overview: React.FC = () => {
     .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime())
     .slice(0, 3);
   const budgets = data.budgets;
-
+  const navigate = useNavigate();
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
@@ -209,8 +209,9 @@ const Overview: React.FC = () => {
           return (
             <div
               key={budget.id}
-              className="border border-gray-100 rounded-lg p-4"
-            >
+              onClick={() => navigate(`expenses/budgets/${budget.id}`, { state: { budget } })}
+              className="border border-gray-100 rounded-lg p-4 hover:shadow-md cursor-pointer transition-shadow"
+                    >
               <div className="flex justify-between items-center mb-3">
                 <h4 className="font-medium text-gray-900">
                   {formatDate(budget.date)}
