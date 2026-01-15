@@ -210,7 +210,7 @@ const Overview: React.FC = () => {
             <div
               key={budget.id}
               onClick={() => navigate(`expenses/budgets/${budget.id}`, { state: { budget } })}
-              className="border border-gray-100 rounded-lg p-4 hover:shadow-md cursor-pointer transition-shadow"
+              className="border border-gray-100 rounded-lg p-4 hover:shadow-sm cursor-pointer transition-shadow"
                     >
               <div className="flex justify-between items-center mb-3">
                 <h4 className="font-medium text-gray-900">

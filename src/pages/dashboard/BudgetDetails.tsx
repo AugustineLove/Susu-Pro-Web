@@ -25,6 +25,8 @@ const BudgetDetails = () => {
       item.customer_name ||
       item.recorded_staff_name ||
       item.expense_staff_name ||
+      item.mobile_banker_name ||
+      item.withdrawal_staff_name ||
       item.expense_description ||
       "";
 

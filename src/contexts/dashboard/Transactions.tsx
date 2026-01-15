@@ -129,7 +129,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`http://localhost:5000/api/transactions/all/${companyId}`);
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/all/${companyId}`);
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -192,7 +192,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`http://localhost:5000/api/transactions/stake`, {
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/stake`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -354,7 +354,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setError(null);
       
       const res = await fetch(
-        `http://localhost:5000/api/transactions/${transactionId}/approve`,
+        `https://susu-pro-backend.onrender.com/api/transactions/${transactionId}/approve`,
         {
           method: 'POST',
           headers: {

@@ -41,7 +41,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
   const [isSendingEntry, setIsSendingEntry] = useState(false);
 
   const API_BASE = "https://susu-pro-backend.onrender.com/api"; // adjust to your backend
-  const API_LOCAL_BASE = "http://localhost:5000/api";
+  // const API_BASE = "https://susu-pro-backend.onrender.com/api";
   // Fetch both assets + expenses
   const fetchFinanceData = async () => {
         try {
@@ -61,7 +61,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     try {
         console.log("Adding asset with data:", {company_id, ...data});
       setLoading(true);
-      const res = await fetch(`${API_LOCAL_BASE}/financials/entry`, { 
+      const res = await fetch(`${API_BASE}/financials/entry`, { 
         method: "POST", 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -88,7 +88,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const recorded_by = (userRole === "company") ? '' : userUUID;
-      const res = await fetch(`http://localhost:5000/api/financials/entry`, { 
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/financials/entry`, { 
         method: "POST", 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -136,7 +136,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const recorded_by = userUUID;
-      const res = await fetch(`${API_LOCAL_BASE}/financials/budget`, { 
+      const res = await fetch(`${API_BASE}/financials/budget`, { 
         method: "POST", 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

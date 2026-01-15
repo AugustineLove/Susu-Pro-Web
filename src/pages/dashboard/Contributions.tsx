@@ -477,7 +477,7 @@ const Contributions: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                      {contribution.description || `Transaction recorded by ${getStaffName(contribution.recorded_staff_id)}`}
+                      {contribution.description ? contribution.description : 'Transaction recorded by '} <span className='font-bold'>{ contribution.description ? '' : `${getStaffName(contribution.recorded_staff_id)}`}</span>
                     </td>
                     <td>
                         <button
