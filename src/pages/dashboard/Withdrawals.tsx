@@ -4,7 +4,7 @@ import { Commission, mockWithdrawals, Withdrawal } from '../../data/mockData';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
 import { TransactionType, useTransactions } from '../../contexts/dashboard/Transactions';
 import { toast } from 'react-hot-toast';
-import { companyId, companyName, parentCompanyName, userUUID } from '../../constants/appConstants';
+import { companyId, companyName, parentCompanyName, userPermissions, userUUID } from '../../constants/appConstants';
 import { CommissionModal } from '../../components/financeModals';
 import { FormDataState } from './Finance';
 
@@ -185,7 +185,9 @@ const makeSuSuProName = (companyName: string) => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {
+        userPermissions.VIEW_BRIEFING && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -232,6 +234,8 @@ const makeSuSuProName = (companyName: string) => {
         </div>
       </div>
 
+        )
+      }
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -307,7 +311,7 @@ const makeSuSuProName = (companyName: string) => {
                         <span className="text-gray-700 font-medium text-sm">
                           {withdrawal.customer_account_number}
                         </span>
-                        <p className='text-[10px]'>Staff: {withdrawal.staff_name}</p>
+                        <p className='text-[10px]'>Staff: {withdrawal.recorded_staff_name}</p>
                       </div>
                     </div>
                   </td>
@@ -364,8 +368,8 @@ const makeSuSuProName = (companyName: string) => {
                             {new Date(withdrawal.transaction_date).toLocaleDateString()}
                           </div>
                         )}
-                        {withdrawal.staff_name && (
-                          <div className="text-gray-400">by {withdrawal.staff_name}</div>
+                        {withdrawal.recorded_staff_name && (
+                          <div className="text-gray-400">by {withdrawal.recorded_staff_name}</div>
                         )}
                       </div>
                     )}

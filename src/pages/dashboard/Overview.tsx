@@ -48,7 +48,7 @@ const Overview: React.FC = () => {
     },
     {
       title: 'Total Deposits',
-      value: `¢${totals?.totalDeposits}` || 0,
+      value: `¢${Math.round(totals?.totalDeposits)}` || 0,
       subtitle: 'All total customer deposits',
       icon: PiggyBank,
       color: 'green',
@@ -303,7 +303,7 @@ const Overview: React.FC = () => {
                     {/* Staff Name */}
                     <div className="hidden sm:block text-center text-xs text-gray-600">
                       <p className="text-[10px] text-gray-400">Processed by</p>
-                      <p className="font-medium">{transaction.staff_name}</p>
+                      <p className="font-medium">{transaction.recorded_staff_name}</p>
                       
                     </div>
                     {/* Staff Name */}

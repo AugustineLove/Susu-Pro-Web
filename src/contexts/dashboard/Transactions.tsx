@@ -18,6 +18,10 @@ export type TransactionType = {
   status: string;
   account_id?: string;
   unique_code: string;
+  recorded_staff_name?: string;
+  mobile_banker_name?: string;
+  recorded_staff_id?: string;
+  mobile_banker_id?: string;
 };
 
 export type TransactionTotals = {
@@ -125,7 +129,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/all/${companyId}`);
+      const res = await fetch(`http://localhost:5000/api/transactions/all/${companyId}`);
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -188,7 +192,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/stake`, {
+      const res = await fetch(`http://localhost:5000/api/transactions/stake`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -350,7 +354,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setError(null);
       
       const res = await fetch(
-        `https://susu-pro-backend.onrender.com/api/transactions/${transactionId}/approve`,
+        `http://localhost:5000/api/transactions/${transactionId}/approve`,
         {
           method: 'POST',
           headers: {
@@ -360,8 +364,11 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       );
 
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
+      const err = await res.json();
+      console.error("Approve error:", err);
+      throw new Error(err.message || "Approval failed");
+    }
+
 
       const json = await res.json();
 

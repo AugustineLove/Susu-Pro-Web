@@ -8,6 +8,7 @@ import { useStaff } from '../../contexts/dashboard/Staff';
 import DeleteTransactionModal from '../../components/deleteTransactionModal';
 import toast from 'react-hot-toast';
 import { useCustomers } from '../../contexts/dashboard/Customers';
+import { userPermissions } from '../../constants/appConstants';
 
 const Contributions: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,7 +39,7 @@ const Contributions: React.FC = () => {
       const matchesStatus = statusFilter === 'all' || contribution.status === statusFilter;
       
       // Staff filter
-      const matchesStaff = staffFilter === 'all' || contribution.staff_id === staffFilter;
+      const matchesStaff = staffFilter === 'all' || contribution.mobile_banker_id === staffFilter;
       
       // Date range filter
       let matchesDate = true;
@@ -243,7 +244,9 @@ const Contributions: React.FC = () => {
       </div>
 
       {/* Enhanced Stats Cards - showing filtered data */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {
+        userPermissions.VIEW_BRIEFING && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -297,6 +300,8 @@ const Contributions: React.FC = () => {
         </div>
       </div>
 
+        )
+      }
       {/* Enhanced Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
@@ -448,7 +453,7 @@ const Contributions: React.FC = () => {
                           </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">{contribution.customer_name}</div>
-                         <div className='text-xs text-gray-400'>{contribution.staff_name ? getStaffName(contribution.staff_id) : 'Unassigned'}</div>
+                         <div className='text-xs text-gray-400'>Assigned Banker: {contribution.mobile_banker_name ? getStaffName(contribution.mobile_banker_id) : 'Unassigned'}</div>
                         </div>
                       </div>
                     </td>
@@ -472,7 +477,7 @@ const Contributions: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                      {contribution.description || '-'}
+                      {contribution.description || `Transaction recorded by ${getStaffName(contribution.recorded_staff_id)}`}
                     </td>
                     <td>
                         <button

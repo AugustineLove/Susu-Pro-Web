@@ -39,6 +39,7 @@ import StaffManagement from './pages/dashboard/Staff';
 import LoanManagement from './pages/dashboard/Loans';
 import { LoansProvider } from './contexts/dashboard/Loan';
 import BudgetDetails from './pages/dashboard/BudgetDetails';
+import { FloatActivityProvider } from './contexts/dashboard/FloatActivity';
 
 function App() {
   return (
@@ -72,7 +73,9 @@ function App() {
                       <AccountsProvider>
                         <FinanceProvider>
                           <LoansProvider>
-                            <DashboardLayout />
+                            <FloatActivityProvider>
+                              <DashboardLayout />
+                            </FloatActivityProvider>
                           </LoansProvider>
                         </FinanceProvider>
                       </AccountsProvider>

@@ -1,7 +1,7 @@
 // src/context/FinanceContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Asset, Budget, Expense, Payment } from "../../data/mockData";
-import { companyId } from "../../constants/appConstants";
+import { companyId, userRole, userUUID } from "../../constants/appConstants";
 
 
 type FinanceContextType ={
@@ -41,7 +41,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
   const [isSendingEntry, setIsSendingEntry] = useState(false);
 
   const API_BASE = "https://susu-pro-backend.onrender.com/api"; // adjust to your backend
-
+  const API_LOCAL_BASE = "http://localhost:5000/api";
   // Fetch both assets + expenses
   const fetchFinanceData = async () => {
         try {
@@ -61,12 +61,13 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     try {
         console.log("Adding asset with data:", {company_id, ...data});
       setLoading(true);
-      const res = await fetch(`${API_BASE}/financials/entry`, { 
+      const res = await fetch(`${API_LOCAL_BASE}/financials/entry`, { 
         method: "POST", 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             company_id,
-        ...data })});
+        ...data,
+       })});
       await fetchFinanceData()
        console.log('Add asset response:', res);
        console.log('Response ok status:', res.ok);
@@ -86,11 +87,13 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
   const addExpense = async ( company_id: string, data: Omit<Expense, "id">) => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/financials/entry`, { 
+      const recorded_by = (userRole === "company") ? '' : userUUID;
+      const res = await fetch(`http://localhost:5000/api/financials/entry`, { 
         method: "POST", 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-        company_id,
+        company_id, 
+        recorded_by,
         ...data })});
         console.log('Add expense response:', res);
       await fetchFinanceData(); 
@@ -132,11 +135,13 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
   const addBudget = async ( company_id: string, data: Omit<Budget, "id">) => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/financials/budget`, { 
+      const recorded_by = userUUID;
+      const res = await fetch(`${API_LOCAL_BASE}/financials/budget`, { 
         method: "POST", 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
         company_id,
+        recorded_by,
         ...data })});
         console.log('Add budget response:', res);
       await fetchFinanceData(); // refresh

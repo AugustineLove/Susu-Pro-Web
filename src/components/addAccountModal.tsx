@@ -54,6 +54,8 @@ interface LoanCalculations {
   maturityDate: string;
   paymentSchedule: Array<{
     month: number;
+    week?: number;
+    day?: number;
     payment: number;
     principal: number;
     interest: number;
@@ -179,6 +181,8 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
       balance -= monthlyPrincipal;
       schedule.push({
         month,
+        week: month / 7,
+        day: month * 30 / 7,
         payment: monthlyPayment,
         principal: monthlyPrincipal,
         interest: monthlyInterest,
@@ -628,6 +632,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
                     <option value="Emergency Loan">Emergency Loan</option>
                     <option value="Education Loan">Education Loan</option>
                     <option value="Agricultural Loan">Agricultural Loan</option>
+                    <option value="Other">Other</option>
                   </select>
                   {errors.loanType && <p className="text-red-600 text-sm mt-1">{errors.loanType}</p>}
                 </div>
@@ -652,13 +657,14 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Annual Interest Rate (%) *
+                    Interest Rate (%) *
                   </label>
                   <input
                     type="number"
                     value={formData.interestRate || ''}
                     onChange={(e) => handleInputChange('interestRate', e.target.value)}
                     placeholder="15.0"
+                    required={true}
                     min="0"
                     step="0.1"
                     className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${
@@ -775,7 +781,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Collateral *
+                    Collateral
                   </label>
                   <input
                     type="text"
@@ -964,9 +970,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
                           <thead className="bg-gray-100">
                             <tr>
                               <th className="px-4 py-2 text-left">Month</th>
-                              <th className="px-4 py-2 text-right">Payment</th>
                               <th className="px-4 py-2 text-right">Principal</th>
                               <th className="px-4 py-2 text-right">Interest</th>
+                              <th className="px-4 py-2 text-right">Payment</th>
                               <th className="px-4 py-2 text-right">Balance</th>
                             </tr>
                           </thead>
@@ -974,9 +980,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
                             {calculations.paymentSchedule.slice(0, 6).map((payment) => (
                               <tr key={payment.month} className="border-b">
                                 <td className="px-4 py-2">{payment.month}</td>
-                                <td className="px-4 py-2 text-right font-semibold">{formatCurrency(payment.payment)}</td>
                                 <td className="px-4 py-2 text-right">{formatCurrency(payment.principal)}</td>
                                 <td className="px-4 py-2 text-right">{formatCurrency(payment.interest)}</td>
+                                <td className="px-4 py-2 text-right">{formatCurrency(payment.payment)}</td>
                                 <td className="px-4 py-2 text-right">{formatCurrency(payment.balance)}</td>
                               </tr>
                             ))}
@@ -1002,6 +1008,10 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
                     <div>
                       <p className="text-sm text-gray-600">Guarantor</p>
                       <p className="font-semibold text-gray-900">{formData.guarantor}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Guarantor Phone</p>
+                      <p className="font-semibold text-gray-900">{formData.guarantorPhone}</p>
                     </div>
                   </div>
                 </div>

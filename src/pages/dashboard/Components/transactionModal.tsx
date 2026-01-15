@@ -17,7 +17,7 @@ import {
 import { useCustomers } from "../../../contexts/dashboard/Customers";
 import { useStaff } from "../../../contexts/dashboard/Staff";
 import { useAccounts } from "../../../contexts/dashboard/Account";
-import { companyId, companyName, userRole } from "../../../constants/appConstants";
+import { companyId, companyName, userRole, userUUID } from "../../../constants/appConstants";
 import { useTransactions } from "../../../contexts/dashboard/Transactions";
 import toast from 'react-hot-toast';
 
@@ -90,7 +90,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave
       ? new Date(transaction.transaction_date).toISOString().slice(0, 16)
       : new Date().toISOString().slice(0, 16),
     staked_by: selectedCustomer?.registered_by || transaction?.staked_by || '',
-    company_id: companyId
+    company_id: companyId,
+    staff_id: userUUID,
   });
 
   const [customerSearch,  setCustomerSearch] = useState('');
