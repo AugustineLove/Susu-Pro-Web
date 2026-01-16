@@ -75,7 +75,7 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setLoading(true);
     console.log(`Fetching accounts for customer ID: ${customerId}`);
     try {
-        const res = await fetch(`http://localhost:5000/api/accounts/customer/${customerId}`);
+        const res = await fetch(`https://susu-pro-backend.onrender.com/api/accounts/customer/${customerId}`);
       if (!res.ok) {
         const errorText = await res.text();
         return;
