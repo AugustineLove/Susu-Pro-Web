@@ -201,7 +201,8 @@ const filteredCustomers = customers.filter(customer =>
     setFormData(prev => ({ ...prev, account_id: '' }));
     
     // Fetch accounts for the selected customer
-    refreshAccounts(customer.customer_id || customer.id);
+    console.log(customer)
+    refreshAccounts(customer.customer_id);
     
     if (errors.account_id) {
       setErrors(prev => ({ ...prev, account_id: '' }));

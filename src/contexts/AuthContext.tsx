@@ -106,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCompany(null);
     localStorage.removeItem('susupro_company');
     localStorage.removeItem('susupro_token');
+    window.location.reload();
   };
 
   return (
