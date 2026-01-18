@@ -233,13 +233,17 @@ const Contributions: React.FC = () => {
             <Download className="h-5 w-5 mr-2" />
             Export
           </button>
-          <button
+          {
+            userPermissions.PROCESS_TRANSACTIONS && (
+              <button
             onClick={() => setShowAddModal(true)}
             className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
           >
             <Plus className="h-5 w-5 mr-2" />
             Log Contribution
           </button>
+            )
+          }
         </div>
       </div>
 

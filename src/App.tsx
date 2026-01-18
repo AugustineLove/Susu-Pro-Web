@@ -40,6 +40,9 @@ import LoanManagement from './pages/dashboard/Loans';
 import { LoansProvider } from './contexts/dashboard/Loan';
 import BudgetDetails from './pages/dashboard/BudgetDetails';
 import { FloatActivityProvider } from './contexts/dashboard/FloatActivity';
+import { AccountNumberProvider } from './contexts/dashboard/NextAccountNumber';
+import { userUUID } from './constants/appConstants';
+import { AccountNumberProviders } from './contexts/dashboard/NextAccNumbers';
 
 function App() {
   return (
@@ -74,7 +77,11 @@ function App() {
                         <FinanceProvider>
                           <LoansProvider>
                             <FloatActivityProvider>
-                              <DashboardLayout />
+                              <AccountNumberProvider>
+                                <AccountNumberProviders>
+                                  <DashboardLayout />
+                                </AccountNumberProviders>
+                              </AccountNumberProvider>
                             </FloatActivityProvider>
                           </LoansProvider>
                         </FinanceProvider>

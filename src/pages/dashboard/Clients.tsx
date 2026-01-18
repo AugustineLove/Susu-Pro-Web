@@ -486,7 +486,6 @@ const Clients: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
-                        {userPermissions.MANAGE_STAFF && (
                           <button
                             onClick={(e) => {e.stopPropagation(); setEditingClient(customer)}}
                             className="text-indigo-600 hover:text-indigo-900 transition-colors"
@@ -494,7 +493,6 @@ const Clients: React.FC = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </button>
-                        )}
                         {userPermissions.MANAGE_STAFF && (
                           <button
                             onClick={(e) => {e.stopPropagation(); handleDeleteClick(customer)}}

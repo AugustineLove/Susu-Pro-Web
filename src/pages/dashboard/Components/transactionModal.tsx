@@ -233,7 +233,7 @@ const filteredCustomers = customers.filter(customer =>
 
   const handleSubmit = async () => {
     const toastId= toast.loading('Adding transaction...');
-    if (!validateForm()) return;
+    if (!validateForm()) toast.error('Please complete the form.', {id: toastId});
     const status = formData.transaction_type === 'withdrawal' ? 'pending' : 'completed';
     const transactionData = {
       ...formData,
@@ -254,7 +254,7 @@ const filteredCustomers = customers.filter(customer =>
     if (transaction) {
       onSave({ ...transaction, ...transactionData });
     } else {
-      onSave(transactionData);
+      // onSave(transactionData);
     }
   };
 

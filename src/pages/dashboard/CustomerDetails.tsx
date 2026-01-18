@@ -378,6 +378,7 @@ const CustomerDetailsPage = () => {
                           {transaction.type === 'deposit' ? '+' : '-'}{formatCurrency(transaction.amount)}
                         </p>
                         <p className="text-sm text-gray-600">{formatDate(transaction.transaction_date)}</p>
+                        
                       </div>
                     </div>
                   ))}
@@ -481,7 +482,7 @@ const CustomerDetailsPage = () => {
 
             <p className="text-sm text-gray-600 mb-3">
               {account.account_type.charAt(0).toUpperCase() +
-                account.account_type.slice(1)}
+                account.account_type.slice(1)} - {account.account_number}
             </p>
 
             <p className="text-[10px] text-gray-400 mb-2">

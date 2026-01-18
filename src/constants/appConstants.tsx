@@ -20,10 +20,39 @@ export const getUserPermissions = () =>{
   return user.permissions;
 }
 
+const formatFallbackRole = (role: string) => {
+  if (!role) return "User";
+
+  return role
+    .replace(/[_-]+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+
 export const getUserRole = () => {
   if (!user) return null;
-  return user.type === "company" ? "admin" : user.role;
-}
+
+  const rawRole =
+    user.type === "company"
+      ? "admin"
+      : String(user.role || "").toLowerCase().trim();
+
+  const roleMap: Record<string, string> = {
+    admin: "Admin",
+    manager: "Manager",
+    teller: "Teller",
+    mobile_banker: "Mobile Banker",
+    "mobile banker": "Mobile Banker",
+    mobilebanker: "Mobile Banker",
+    cashier: "Cashier",
+    accountant: "Accountant",
+  };
+
+  return roleMap[rawRole] || formatFallbackRole(rawRole);
+};
 
 export const getUserUUID = () => {
   if (!user) return null;

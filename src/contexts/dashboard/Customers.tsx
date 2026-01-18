@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Account, Customer } from '../../data/mockData';
 import { companyId, getEffectiveCompanyId, userPermissions } from '../../constants/appConstants';
 import toast from 'react-hot-toast';
+import { useAccountNumbers } from './NextAccNumbers';
 
 
 interface CustomersContextType {
@@ -12,7 +13,7 @@ interface CustomersContextType {
   fetchCustomerById: (customerId: string) => Promise<void>;
   refreshCustomers: () => Promise<void>;
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
-   addCustomer: (newCustomer: Omit<Customer, 'id' | 'created_at'>, account: string) => Promise<void>;
+   addCustomer: (newCustomer: Omit<Customer, 'id' | 'created_at'>, account: string, account_number: string) => Promise<void>;
    deleteCustomer: (customer_id: string) => Promise<void>;
 }
 
@@ -30,7 +31,6 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerLoading, setCustomerloading] = useState(true);
   const [customer, setCustomer] = useState<Customer>();
-
   const fetchCustomers = async () => {
     setCustomerloading(true);
     console.log(`User permissions: ${JSON.stringify(userPermissions)}`)
@@ -120,7 +120,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 };
 
 
-  const addCustomer = async (newCustomer: Omit<Customer, 'id' | 'created_at'>, account_type:string) => {
+  const addCustomer = async (newCustomer: Omit<Customer, 'id' | 'created_at'>, account_type:string, account_number: string) => {
     const companyId = getEffectiveCompanyId();
     const token = localStorage.getItem('susupro_token');
     console.log('Company ID in addCustomer: ', companyId);
@@ -145,7 +145,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           'customer_id': added.data.id,
           'company_id': companyId,
           'balance': 0,
-
+          'account_number': account_number,
         })
         await fetchCustomers();
       } else {

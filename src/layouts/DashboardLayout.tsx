@@ -16,7 +16,7 @@ import {
   CreditCard,
   Bell
 } from 'lucide-react';
-import { userPermissions } from '../constants/appConstants';
+import { companyName, userPermissions, userRole } from '../constants/appConstants';
 
 const DashboardLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -156,7 +156,17 @@ const DashboardLayout: React.FC = () => {
                 <Bell className="h-6 w-6" />
                 <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
               </button>
-              <p className='text-black'>{company?.staffName}</p>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">
+                    {companyName?.charAt(0) || userRole?.charAt(0)}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-900">{companyName}</span>
+                  <span className="text-xs text-gray-500">{userRole}</span>
+                </div>
+              </div>
             </div>
             
           </div>

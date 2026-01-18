@@ -1,4 +1,4 @@
-import { useState, useContext, createContext } from "react";
+import { useState, useContext, createContext, useEffect } from "react";
 import { Calendar, User, Mail, Phone, MapPin, CreditCard, Users, DollarSign, UserCheck } from "lucide-react";
 import { Account, Customer } from "../../../data/mockData";
 import { useCustomers } from "../../../contexts/dashboard/Customers";
@@ -6,6 +6,9 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useStaff } from "../../../contexts/dashboard/Staff";
 import { getEffectiveCompanyId } from "../../../constants/appConstants";
 import toast from "react-hot-toast";
+import { useAccountNumber } from "../../../contexts/dashboard/NextAccountNumber";
+import { useAccountNumbers } from "../../../contexts/dashboard/NextAccNumbers";
+import { registerVersion } from "firebase/app";
 
 // Staff Context (you can import this from your actual context file)
 interface Staff {
@@ -40,11 +43,16 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
   const { company } = useAuth();
   const [startedAdding, setStartedAdding] = useState(false);
   const companyId = getEffectiveCompanyId();
+  const { getNextAccountNumber, fetchLastAccountNumbers } = useAccountNumbers();
+  const [selectedStaffId, setSelectedStaffId] = useState<string>(client?.registered_by || '');
+  const [nextAccNumber, setNextAccountNumber] = useState<string | null>(null);
+  const { nextAccountNumber, refreshAccountNumber, loading } = useAccountNumber();
+
   const [formData, setFormData] = useState({
     name: client?.name || '',
     email: client?.email || '',
     phone_number: client?.phone_number || '',
-    account_number: client?.account_number || '',
+    account_number: client?.account_number || nextAccNumber || '',
     city: client?.city || '',
     id_card: client?.id_card || '',
     gender: client?.gender
@@ -63,26 +71,6 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
     created_by: client?.registered_by
   });
 
-  console.log(`Editing client body ${JSON.stringify({
-    name: client?.name || '',
-    email: client?.email || '',
-    phone_number: client?.phone_number || '',
-    account_number: client?.account_number || '',
-    city: client?.city || '',
-    id_card: client?.id_card || '',
-    gender: client?.gender || '',
-    next_of_kin: client?.next_of_kin || '',
-    location: client?.location || '',
-    daily_rate: client?.daily_rate || '',
-    date_of_registration: client?.date_of_registration || new Date().toISOString().split('T')[0],
-    date_of_birth: client?.date_of_birth || new Date().toISOString().split('T')[0],
-    registered_by: client?.registered_by || '',
-    account_type: account?.account_type || '',
-    company_id: companyId,
-    customer_id: client?.customer_id,
-    created_by: client?.registered_by
-  })}`)
-
   // Filter staff to get only Mobile Bankers
   const mobileBankers = staffList.filter(staff => staff.role === 'Mobile Banker' || staff.role === 'mobile banker' ||  staff.role === 'mobile_banker');
   
@@ -90,7 +78,14 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    console.log(`Form data updated: ${formData.registered_by}`);
     setFormData(prev => ({ ...prev, [name]: value }));
+     // If the changed field is 'registered_by', generate next account number
+  if (name === 'registered_by' && value.length > 0) {
+    const nextAccount = getNextAccountNumber(value);
+    console.log('Next account number generated:', nextAccount);
+    setNextAccountNumber(nextAccount);
+  }
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -122,7 +117,14 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
     if (!validateForm()) setStartedAdding(false);
     console.log('Form validated')
     if (!client) {
+      let account_number;
       console.log('Assigned mobile banker:', formData.registered_by);
+      if (formData.account_type === 'Susu'){
+        account_number = `${nextAccNumber}SU1`;
+      }
+      else {
+        account_number = `${nextAccNumber}SA1`;
+      }
       const data =   { 
       ...formData, 
       company_id: companyId, 
@@ -131,11 +133,13 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
       date_of_birth: formData.date_of_birth,
       total_balance: '0.00',
       total_transactions: '0',
+      account_number: nextAccNumber
     }
     const addAccount = {"account_type": formData.account_type,} as Account;
       console.log('Updating client:', data);
       console.log('Add account', addAccount);
-      await addCustomer(data, formData.account_type);
+      await addCustomer(data, formData.account_type, account_number);
+      await fetchLastAccountNumbers();
       toast.success('Client added successfully', { id: toastId });
       setStartedAdding(false);
       // window.location.reload();
@@ -325,28 +329,6 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
                 </h4>
               </div>
 
-               <FormField
-                label="Account Number"
-                name="account_number"
-                value={formData.account_number}
-                onChange={handleChange}
-                required
-                error={errors.account_number}
-                icon={<Phone className="w-4 h-4" />}
-              />
-
-              <FormField
-                label="Daily Rate"
-                name="daily_rate"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.daily_rate}
-                onChange={handleChange}
-               
-                placeholder="0.00"
-              />
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                   <UserCheck className="w-4 h-4 mr-2 text-gray-500" />
@@ -391,6 +373,28 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
                   </p>
                 )}
               </div>
+
+               <FormField
+                label="Account Number"
+                name="account_number"
+                value={nextAccNumber || ''}
+                onChange={handleChange}
+                required
+                error={errors.account_number}
+                icon={<Phone className="w-4 h-4" />}
+              />
+
+              <FormField
+                label="Daily Rate"
+                name="daily_rate"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.daily_rate}
+                onChange={handleChange}
+               
+                placeholder="0.00"
+              />
             </div>
 
             <div className="mt-7">

@@ -344,10 +344,12 @@ const Overview: React.FC = () => {
                 <Plus className="h-8 w-8 text-gray-400 mb-2" />
                 <span className="text-sm font-medium text-gray-700">Add Customer</span>
               </button>
-              <button onClick={()=> {setShowTransactionModal(true)}} className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-teal-400 hover:bg-teal-50 transition-colors">
+              {
+                userPermissions.PROCESS_TRANSACTIONS && <button onClick={()=> {setShowTransactionModal(true)}} className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-teal-400 hover:bg-teal-50 transition-colors">
                 <ArrowUpDown className="h-8 w-8 text-gray-400 mb-2" />
                 <span className="text-sm font-medium text-gray-700">Transaction</span>
               </button>
+              }
               {/* <button className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors">
                 <Download className="h-8 w-8 text-gray-400 mb-2" />
                 <span className="text-sm font-medium text-gray-700">Generate Report</span>
