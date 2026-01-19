@@ -82,6 +82,7 @@ export interface FormDataState {
   recorded_by?: string;
   source?: string;
   account_id?: string;
+  transactionId?: string;
 }
 
 interface ModalProps {

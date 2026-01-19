@@ -117,10 +117,53 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     }
 
+    const reverseTransaction = async (
+      transactionId: string,
+      reason: string
+    ) => {
+  if (!transactionId || !reason) {
+    throw new Error("Transaction ID and reason are required");
+  }
+
+  try {
+    setLoading(true);
+
+    const res = await fetch(
+      `http://localhost:5000/api/transactions/${transactionId}/reverse`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          reason,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to reverse transaction");
+    }
+
+    // ✅ Refresh transactions / balances
+    await fetchTransactions?.();
+
+    return data;
+  } catch (error: any) {
+    console.error("Reverse transaction error:", error);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+
     useEffect(() => {
     fetchAllCompanyLoans(companyId);
     }, []);
-
 
   return (
     <AccountsContext.Provider value={{ accounts, customerLoans, companyLoans, loading, loadingLoans, refreshAccounts: fetchAccounts, addAccount, setAccounts, fetchLoanAccounts: fetchAllCompanyLoans }}>

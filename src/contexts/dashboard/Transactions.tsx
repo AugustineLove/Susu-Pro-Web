@@ -3,6 +3,7 @@ import { Commission, Transaction } from '../../data/mockData';
 import { useCustomers } from './Customers';
 import { useStats } from './DashboardStat';
 import { companyId } from '../../constants/appConstants';
+import toast from 'react-hot-toast';
 
 export type TransactionType = {
   transaction_id: string;
@@ -22,6 +23,10 @@ export type TransactionType = {
   mobile_banker_name?: string;
   recorded_staff_id?: string;
   mobile_banker_id?: string;
+  reversed_at?: string;
+  reversed_by?: string;
+  reversal_reason?: string;
+  reversed_by_name?: string;
 };
 
 export type TransactionTotals = {
@@ -50,6 +55,7 @@ type TransactionContextType = {
   addTransaction: (newTransaction: Omit<Transaction, 'id' | 'created_at'>) => Promise<boolean>;
   approveTransaction: (transactionId: string, messageData: Record<string, any>) => Promise<boolean>;
   rejectTransaction: (transactionId: string) => Promise<boolean>;
+  reverseTransaction: (staffId: string,transactionId: string, reason: string) => Promise<any>;
 };
 
 const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
@@ -232,6 +238,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const deductCommission = useCallback(async (newCommission: Commission): Promise<boolean> => {
     const accountId = newCommission.account_id;
+    console.log(`Commission data: ${JSON.stringify(newCommission)}`)
     
     if (!accountId) {
       console.error('Account ID is required for commission deduction');
@@ -360,7 +367,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+          }
       );
 
       if (!res.ok) {
@@ -449,6 +456,51 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [transactions]);
 
+    const reverseTransaction = async (
+    staffId: string,
+    transactionId: string,
+    reason: string
+    ) => {
+    if (!transactionId || !reason) {
+      throw new Error("Transaction ID and reason are required");
+    }
+    const toastId = 'Reversing transaction...';
+    try {
+    setLoading(true);
+    const res = await fetch(
+      `https://susu-pro-backend.onrender.com/api/transactions/${transactionId}/reverse`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          staffId,
+          reason,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to reverse transaction");
+    }
+    toast.success("Transaction reversed successfully", { id: toastId });
+    // ✅ Refresh transactions / balances
+    await fetchTransactions?.();
+    await refreshCustomers();
+
+    return data;
+  } catch (error: any) {
+    console.error("Reverse transaction error:", error);
+    throw error;
+  } finally {
+    setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
@@ -466,6 +518,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     addTransaction,
     approveTransaction,
     rejectTransaction,
+    reverseTransaction,
   };
 
   return (

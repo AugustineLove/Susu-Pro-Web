@@ -25,10 +25,11 @@ interface FormDataState {
 interface ModalProps {
   show: boolean;
   onClose: () => void;
-  onSubmit: (formData: FormDataState, company_id: string) => void;
+  onSubmit: (formData: FormDataState, company_id: string, transactionId?: string) => void;
   formData: FormDataState;
   onFormChange: (field: keyof FormDataState, value: string) => void;
   loading: boolean;
+  transactionId?: string;
 }
 
  // Add Expense Modal
@@ -389,8 +390,9 @@ export const BudgetModal = ({ show, onClose, onSubmit, formData, onFormChange, l
 
 
 
-export const CommissionModal: React.FC<ModalProps> = ({ show, onClose, onSubmit, formData, onFormChange, loading }) => {
+export const CommissionModal: React.FC<ModalProps> = ({ show, onClose, onSubmit, formData, onFormChange, loading, transactionId }) => {
   if (!show) return null;
+  console.log('Commission Modal transactionId: ', transactionId);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

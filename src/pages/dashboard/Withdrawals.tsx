@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react';
+import { Search, CheckCircle, XCircle, Clock, Eye, Filter, Undo, Undo2 } from 'lucide-react';
 import { Commission, mockWithdrawals, Withdrawal } from '../../data/mockData';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
 import { TransactionType, useTransactions } from '../../contexts/dashboard/Transactions';
@@ -15,9 +15,10 @@ const Withdrawals: React.FC = () => {
   const { stats } = useStats();
   const [isApproving, setIsApproving] = useState(false);
   const [showCommissionModal, setShowCommissionModal] = useState(false);
-  const { transactions, approveTransaction, rejectTransaction, deductCommission, loading } = useTransactions();
+  const { transactions, approveTransaction, rejectTransaction, reverseTransaction, deductCommission, loading } = useTransactions();
   const withdrawalTransactions = transactions.filter(tx => tx.type === 'withdrawal');
   const [commissionData, setCommissionData] = useState<TransactionType>();
+  const [commissionTransactionId, setCommissionTransactionId] = useState<string>('');
   const defaultCommissionFormData: FormDataState = {
     amount: 0,
   }
@@ -25,7 +26,7 @@ const Withdrawals: React.FC = () => {
 
  
 
-  const submitCommission = async (formData: FormDataState) => {
+  const submitCommission = async (formData: FormDataState, transactionId: string, companyId: string) => {
     const toastId = toast.loading('Adding commission...');
     try {
       const { amount } = formData;
@@ -36,7 +37,8 @@ const Withdrawals: React.FC = () => {
         'amount': amount,
         'created_by': userUUID == companyId ? companyId : userUUID,
         'created_by_type': userUUID == companyId ? 'company' : 'staff',
-        'company_id': companyId
+        'company_id': companyId,
+        'transaction_id': transactionId,
        }
        console.log('New commission data: ', newCommissionData) 
        const res = await deductCommission(newCommissionData as Commission)
@@ -114,6 +116,8 @@ const makeSuSuProName = (companyName: string) => {
     message: `Hello ${customerName} you have withdrawn an amount of GHS${withdrawalAmount}`,
     messageFrom: makeSuSuProName(parentCompanyName),
   });
+  console.log(`Approval success withdrawalId: ${withdrawaId} : ${approvalSuccess}`);
+  setCommissionTransactionId(withdrawaId);
 
   if (approvalSuccess) {
     toast.success("Transaction approved successfully!", { id: toastId });
@@ -354,15 +358,32 @@ const makeSuSuProName = (companyName: string) => {
                         </button>
                       </div>
                     ) : withdrawal.status === 'approved' ? (
-                      <button
+                     <div className='flex'>
+                       <button
                         onClick={() => handleComplete(withdrawal.transaction_id)}
                         className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
                       >
                         Mark Complete
                       </button>
+                      {
+                        
+                        !userPermissions.PROCESS_TRANSACTIONS && (
+                          <div className="ml-2">
+                          <button
+                            onClick={() => reverseTransaction(userUUID, withdrawal.transaction_id, 'Wrong amount paid')}
+                            className="bg-yellow-600 text-white px-3 py-1 rounded text-xs hover:bg-yellow-700 transition-colors"
+                          >
+                            <Undo2 className="h-4 w-4 inline-block mr-1" />
+                            Reverse
+                          </button>
+                        </div>
+                        )
+                      }
+                      </div>
                     ) : (
                       <div className="text-gray-400 text-xs">
-                        {withdrawal.transaction_date && (
+                        <div>
+                            {withdrawal.transaction_date && (
                           <div>
                             {withdrawal.status === 'rejected' ? 'Rejected' : 'Approved'} on{' '}
                             {new Date(withdrawal.transaction_date).toLocaleDateString()}
@@ -370,7 +391,24 @@ const makeSuSuProName = (companyName: string) => {
                         )}
                         {withdrawal.recorded_staff_name && (
                           <div className="text-gray-400">by {withdrawal.recorded_staff_name}</div>
-                        )}
+                        )                        
+                        }
+                        </div>
+                        <div>
+                          {
+                            withdrawal.status === 'reversed' ? (
+                              <div>
+                                <XCircle className="h-4 w-4 text-red-400 mt-1">Rejected</XCircle>
+                                Reversed by {withdrawal.reversed_by_name} on {new Date(withdrawal.reversed_at).toLocaleDateString()}
+                                {withdrawal.reversal_reason && (
+                                  <div className="text-red-400 text-xs">
+                                    Reason: {withdrawal.reversal_reason}
+                                  </div>
+                                )}
+                              </div>
+                            ) : null
+                          }
+                        </div>
                       </div>
                     )}
                   </td>
@@ -399,7 +437,7 @@ const makeSuSuProName = (companyName: string) => {
           <CommissionModal 
             show={showCommissionModal}
             onClose={() => setShowCommissionModal(false)}
-            onSubmit={submitCommission}
+            onSubmit={(formData) => submitCommission(formData, commissionTransactionId, companyId)}
             formData={commissionFormData}
             onFormChange={(field, value) =>
             setCommissionFormData(prev => ({ ...prev, [field]: value }))

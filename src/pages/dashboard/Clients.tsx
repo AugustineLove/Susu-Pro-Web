@@ -493,7 +493,7 @@ const Clients: React.FC = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </button>
-                        {userPermissions.MANAGE_STAFF && (
+                        {userPermissions.DELETE_CUSTOMER && (
                           <button
                             onClick={(e) => {e.stopPropagation(); handleDeleteClick(customer)}}
                             className="text-red-600 hover:text-red-900 transition-colors"

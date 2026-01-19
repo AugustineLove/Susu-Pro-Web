@@ -20,7 +20,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  User2
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useCustomers } from '../../contexts/dashboard/Customers';
@@ -485,9 +486,9 @@ const CustomerDetailsPage = () => {
                 account.account_type.slice(1)} - {account.account_number}
             </p>
 
-            <p className="text-[10px] text-gray-400 mb-2">
+            {/* <p className="text-[10px] text-gray-400 mb-2">
               ID {account.id}
-            </p>
+            </p> */}
 
             {/* ---- balances + opened ---- */}
             <div className="space-y-2">
@@ -748,7 +749,7 @@ const CustomerDetailsPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Personal Information</h3>
-              <div className="space-y-4">
+              <div className="space-y-4 grid grid-cols-1 lg:grid-cols-2">
                 <div className="flex items-center space-x-3">
                   <User className="w-5 h-5 text-gray-600" />
                   <div>
@@ -777,6 +778,34 @@ const CustomerDetailsPage = () => {
                     <p className="font-medium text-gray-900">{customerData.address}</p>
                   </div>
                 </div>
+                <div className="flex items-center space-x-3">
+                  <MapPin className="w-5 h-5 text-gray-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Date Of Birth</p>
+                    <p className="font-medium text-gray-900">{formatDate(customerData.date_of_birth)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <User className="w-5 h-5 text-gray-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Next of Kin</p>
+                    <p className="font-medium text-gray-900">{customerData.next_of_kin}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <CreditCard className="w-5 h-5 text-gray-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Ghana Card</p>
+                    <p className="font-medium text-gray-900">{customerData.id_card}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <User2 className="w-5 h-5 text-gray-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Gender</p>
+                    <p className="font-medium text-gray-900">{customerData.gender}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -791,10 +820,10 @@ const CustomerDetailsPage = () => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <Clock className="w-5 h-5 text-gray-600" />
+                  <CreditCard className="w-5 h-5 text-gray-600" />
                   <div>
-                    <p className="text-sm text-gray-600">Last Login</p>
-                    <p className="font-medium text-gray-900">{formatDate(customerData.lastLogin)}</p>
+                    <p className="text-sm text-gray-600">Account Number</p>
+                    <p className="font-medium text-gray-900">{customerData.account_number}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
