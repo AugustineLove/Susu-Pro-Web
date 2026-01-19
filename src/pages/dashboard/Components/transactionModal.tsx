@@ -124,7 +124,7 @@ useEffect(() => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get Mobile Bankers
-  const mobileBankers = staffList.filter(staff => staff.role === 'Mobile Banker' || staff.role === 'mobile banker' || staff.role === 'mobile_banker');
+  const mobileBankers = staffList.filter(staff => staff.role === 'Mobile Banker' || staff.role === 'mobile banker' || staff.role === 'mobile_banker' || staff.role === 'teller');
 
   // Filter customers based on search
 const filteredCustomers = customers.filter(customer =>
@@ -459,7 +459,7 @@ const filteredCustomers = customers.filter(customer =>
                   if (!isTellerRestricted) {
                     selectAccount(account);
                   }
-                }}
+                }} 
                 className={`
                   p-4 border-2 rounded-xl transition-all
                   ${

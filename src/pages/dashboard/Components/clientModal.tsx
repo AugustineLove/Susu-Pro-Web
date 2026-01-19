@@ -72,7 +72,7 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
   });
 
   // Filter staff to get only Mobile Bankers
-  const mobileBankers = staffList.filter(staff => staff.role === 'Mobile Banker' || staff.role === 'mobile banker' ||  staff.role === 'mobile_banker');
+  const mobileBankers = staffList.filter(staff => staff.role === 'Mobile Banker' || staff.role === 'mobile banker' ||  staff.role === 'mobile_banker' || staff.role === 'teller');
   
   const [errors, setErrors] = useState<Record<string, string>>({});
 
