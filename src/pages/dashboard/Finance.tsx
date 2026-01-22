@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
   Plus, 
   Receipt, 
@@ -109,6 +109,8 @@ const RevenueModal: React.FC<ModalProps> = ({
   const { deductCommission } = useTransactions();
 
   const { customers } = useCustomers();
+  
+
   const selectedCustomer = customers.find(
     (c) => c.id === formData.customer_id
   ) || null;
@@ -394,7 +396,8 @@ const FinancialDashboard: React.FC = () => {
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [showRevenueModal, setShowRevenueModal] = useState(false);
   const { data, fetchFinanceData, addExpense, addPayment, addAsset, addBudget, loading } = useFinance();
-  const [categoryFilter, setCategoryFilter] = useState("All Categories");
+  const { transactions, totals, approveTransaction, refreshTransactions, rejectTransaction } = useTransactions();
+    const [categoryFilter, setCategoryFilter] = useState("All Categories");
   const [statusFilter, setStatusFilter] = useState("All Status");
   const { deductCommission } = useTransactions();
   useEffect(() => {
@@ -426,9 +429,9 @@ const calculateOperationalMetrics = () => {
     })
     .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   
-  const grossProfit = monthlyRevenue - monthlyExpenses;
-  const profitMargin = monthlyRevenue > 0 ? (grossProfit / monthlyRevenue) * 100 : 0;
-  const operatingExpenseRatio = monthlyRevenue > 0 ? (monthlyExpenses / monthlyRevenue) * 100 : 0;
+  const grossProfit = (monthlyRevenue + totalCommissionThisMonth) - monthlyExpenses;
+  const profitMargin = (monthlyRevenue + totalCommissionThisMonth) > 0 ? (grossProfit / (monthlyRevenue + totalCommissionThisMonth)) * 100 : 0;
+  const operatingExpenseRatio = (monthlyRevenue + totalCommissionThisMonth) > 0 ? (monthlyExpenses / (monthlyRevenue + totalCommissionThisMonth)) * 100 : 0;
 
   // Assets & ROI
   const totalAssets = assets.reduce((sum, a) => sum + (Number(a.value) || 0), 0);
@@ -454,6 +457,25 @@ const calculateOperationalMetrics = () => {
     breakEvenPoint, // ✅ new metric
   };
 };
+
+  const commissions = useMemo(() => {
+      return transactions.filter(t => t.type === "commission");
+      }, [transactions]);
+
+  const totalCommissionThisMonth = useMemo(() => {
+    const now = new Date();
+    return commissions.reduce((sum, c) => {
+      const d = new Date(c.transaction_date);
+      if (
+        d.getMonth() === now.getMonth() &&
+        d.getFullYear() === now.getFullYear()
+      ) {
+        sum += Number(c.amount);
+      }
+      return sum;
+    }, 0);
+  }, [commissions]);
+  
 
   const operationalMetrics = calculateOperationalMetrics();
 
@@ -644,6 +666,8 @@ const calculateOperationalMetrics = () => {
   }
 }, [userPermissions]);
 
+
+
   // Enhanced Overview Tab Component
   const OverviewTab = () => {
     const totalExpenses = expenses.reduce((sum, e) => Number(sum) + (Number(e.amount) || 0), 0);
@@ -736,7 +760,28 @@ const calculateOperationalMetrics = () => {
         </div>
 
         {/* Operational Performance Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 md:grid-cols-3 gap-6">
+          
+          {/* Total Commissions */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Monthly Commission</p>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  ¢{totalCommissionThisMonth.toLocaleString()}
+                </h3>
+                <div className="flex items-center mt-2">
+                  {/* <span className="text-sm text-gray-600">
+                    {operationalMetrics.operatingExpenseRatio.toFixed(1)}% of revenue
+                  </span> */}
+                </div>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+          
           {/* Cash Runway */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
@@ -795,6 +840,14 @@ const calculateOperationalMetrics = () => {
                 +¢{operationalMetrics.monthlyRevenue.toLocaleString()}
               </span>
             </div>
+
+            <div className="flex justify-between items-center py-2 border-b border-gray-50">
+              <span className="text-sm font-medium text-gray-600">Commission</span>
+              <span className="text-sm font-semibold text-green-600">
+                +¢{totalCommissionThisMonth.toLocaleString()}
+              </span>
+            </div>
+
             <div className="flex justify-between items-center py-2 border-b border-gray-50">
               <span className="text-sm font-medium text-gray-600">Operating Expenses</span>
               <span className="text-sm font-semibold text-red-600">
@@ -993,6 +1046,150 @@ const calculateOperationalMetrics = () => {
       </div>
     </div>
     )
+};
+
+const CommissionTab = ({
+  transactions = [],
+}) => {
+  const navigate = useNavigate();
+
+  // 1️⃣ Get only commission transactions (excluding reversed)
+  // const commissions = useMemo(() => {
+  //   return transactions.filter(
+  //     t => t.type === "commission" && t.status !== "reversed"
+  //   );
+  // }, [transactions]);
+
+  // 2️⃣ Group commissions by date
+  const commissionsByDate = useMemo(() => {
+    return commissions.reduce((acc, commission) => {
+      if (!commission.transaction_date) return acc;
+
+      const dateKey = new Date(commission.transaction_date)
+        .toISOString()
+        .split("T")[0]; // YYYY-MM-DD
+
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(commission);
+
+      return acc;
+    }, {});
+  }, [commissions]);
+
+  // 3️⃣ Convert grouped object to array
+  const commissionDays = useMemo(() => {
+    return Object.entries(commissionsByDate)
+      .map(([date, items]) => ({
+        date,
+        total: items.reduce((sum, i) => sum + Number(i.amount), 0),
+        count: items.length,
+        items
+      }))
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [commissionsByDate]);
+
+  // 4️⃣ Monthly total
+
+  const totalCommission = totals?.totalCommissions || 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Commission Tracking
+          </h2>
+          <p className="text-sm text-gray-600">
+            View and manage company commission income
+          </p>
+        </div>
+
+        {userPermissions?.ALTER_FINANCE && (
+          <button
+            // onClick={() => setShowCommissionModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Record Commission</span>
+          </button>
+        )}
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <h3 className="text-sm text-gray-600">Overall Commission</h3>
+          <p className="text-2xl font-bold mt-2">
+            ₵{totalCommission.toLocaleString()}
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm text-gray-600">
+              Commission This Month
+            </h3>
+            <Receipt className="w-5 h-5 text-green-600" />
+          </div>
+          <p className="text-2xl font-bold mt-2">
+            ₵{totalCommissionThisMonth.toLocaleString()}
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <h3 className="text-sm text-gray-600">
+            Total Transactions
+          </h3>
+          <p className="text-2xl font-bold mt-2">
+            {commissions.length}
+          </p>
+        </div>
+      </div>
+
+      {/* Commissions by Date */}
+      <div className="bg-white rounded-xl shadow-sm border p-6">
+        <h3 className="text-lg font-semibold mb-4">
+          Commissions by Date
+        </h3>
+
+        {commissionDays.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            No commission records available.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {commissionDays.map(day => (
+              <div
+                key={day.date}
+                onClick={() =>
+                  navigate(`commissions/${day.date}`, {
+                    state: {
+                      date: day.date,
+                      commissions: day.items
+                    }
+                  })
+                }
+                className="border rounded-lg p-4 cursor-pointer hover:shadow-md transition"
+              >
+                <div className="flex justify-between items-center">
+                  <h4 className="font-medium">
+                    {new Date(day.date).toDateString()}
+                  </h4>
+                  <p className="font-semibold">
+                    ₵{day.total.toLocaleString()}
+                  </p>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {day.count} transaction(s)
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
   // Expenses Tab Component
@@ -1413,12 +1610,16 @@ const AssetsTab = () => {
       const monthRevenue = revenue
         .filter(r => r.payment_date?.startsWith(monthKey))
         .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+      const monthCommission = commissions.filter(c => c.transaction_date?.startsWith(monthKey))
+        .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
 
       return {
         month: date.toLocaleDateString('en', { month: 'short', year: 'numeric' }),
         revenue: monthRevenue,
+        commission: monthCommission,
         expenses: monthExpenses,
-        profit: monthRevenue - monthExpenses
+        profit: (monthRevenue + monthCommission) - monthExpenses
+
       };
     });
 
@@ -1553,6 +1754,7 @@ const AssetsTab = () => {
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Month</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Commission</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expenses</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profit</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Margin</th>
@@ -1563,6 +1765,7 @@ const AssetsTab = () => {
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{month.month}</td>
                     <td className="px-4 py-3 text-sm text-green-600">¢{month.revenue.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-sm text-green-600">¢{month.commission.toLocaleString()}</td>
                     <td className="px-4 py-3 text-sm text-red-600">¢{month.expenses.toLocaleString()}</td>
                     <td className="px-4 py-3 text-sm font-semibold">
                       <span className={month.profit >= 0 ? 'text-green-600' : 'text-red-600'}>
@@ -1621,6 +1824,7 @@ const AssetsTab = () => {
       ? [
           { id: 'overview', label: 'Overview', icon: BarChart3 },
           { id: 'revenue', label: 'Revenue', icon: TrendingUp },
+          { id: 'commission', label: 'Commission', icon: TrendingUp },
           { id: 'expenses', label: 'Expenses', icon: Banknote },
           { id: 'assets', label: 'Assets', icon: Building2 },
           { id: 'budget', label: 'Float', icon: PieChart },
@@ -1677,6 +1881,7 @@ const AssetsTab = () => {
       <div className="px-6 py-8">
         {activeTab === 'overview' && <OverviewTab />}
         {activeTab === 'revenue' && <RevenueTab />}
+        {activeTab === 'commission' && <CommissionTab />}
         {activeTab === 'expenses' && <ExpensesTab />}
         {activeTab === 'assets' && <AssetsTab />}
         {activeTab === 'budget' && <FloatTab />}

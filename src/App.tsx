@@ -43,6 +43,7 @@ import { FloatActivityProvider } from './contexts/dashboard/FloatActivity';
 import { AccountNumberProvider } from './contexts/dashboard/NextAccountNumber';
 import { userUUID } from './constants/appConstants';
 import { AccountNumberProviders } from './contexts/dashboard/NextAccNumbers';
+import { CommissionDay } from './pages/dashboard/DailyCommissions';
 
 function App() {
   return (
@@ -97,6 +98,7 @@ function App() {
             <Route path="contributions" element={<Contributions />} />
             <Route path="all-transactions" element={<AllTransactions />} />
             <Route path="expenses/budgets/:id" element={<BudgetDetails />} />
+            <Route path="expenses/commissions/:date" element={<CommissionDay />} />
             <Route path="withdrawals" element={<Withdrawals />} />
             <Route path="reports" element={<Reports />} />
             <Route path="chat" element={<Chat />} />

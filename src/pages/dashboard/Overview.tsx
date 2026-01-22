@@ -41,7 +41,7 @@ const Overview: React.FC = () => {
     {
       title: 'Total Customers',
       value: stats?.totalCustomers,
-      subtitle: `All company customers`,
+      subtitle: `All company customers (including inactive)`,
       icon: Users,
       color: 'indigo',
       change: '+12%'
@@ -59,6 +59,14 @@ const Overview: React.FC = () => {
       value: `¢${totals?.totalApprovedWithdrawals}` || 0,
       subtitle: 'All total customer withdrawals',
       icon: PiggyBank,
+      color: 'green',
+      change: '+8.2%'
+    },
+    {
+      title: 'Total Commission',
+      value: `¢${totals?.totalCommissions}` || 0,
+      subtitle: 'All total customer commissions',
+      icon: TrendingUp,
       color: 'green',
       change: '+8.2%'
     },
@@ -150,6 +158,8 @@ const Overview: React.FC = () => {
       ? 'bg-green-100 text-green-800' 
       : 'bg-red-100 text-red-800';
   };
+
+  const totalCommission = totals?.totalCommissions || 0;
 
   return (
     <div className="space-y-6">
