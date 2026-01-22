@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Users, PiggyBank, ArrowUpDown, TrendingUp, Plus, Eye, Download } from 'lucide-react';
 import { Customer, mockClients, mockContributions, mockWithdrawals, Transaction } from '../../data/mockData';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
@@ -36,7 +36,8 @@ const Overview: React.FC = () => {
   const todayBudgets = budgets.filter(
     (budget) => budget.date.split("T")[0] === today
   );
-  console.log(`View briefing permission: ${JSON.stringify(userPermissions.VIEW_BRIEFING)}`);
+  
+  // console.log(`View briefing permission: ${JSON.stringify(userPermissions.VIEW_BRIEFING)}`);
   const localStats = [
     {
       title: 'Total Customers',
@@ -161,7 +162,10 @@ const Overview: React.FC = () => {
 
   const totalCommission = totals?.totalCommissions || 0;
 
+  if (!userPermissions) window.location.reload();
+
   return (
+    
     <div className="space-y-6">
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-teal-600 rounded-xl p-6 text-white">

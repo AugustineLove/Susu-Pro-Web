@@ -549,7 +549,9 @@ const Contributions: React.FC = () => {
         </td>
 
         {/* Reverse Action */}
-        <td className="px-6 py-4">
+        {
+          !userPermissions.PROCESS_TRANSACTIONS && (
+            <td className="px-6 py-4">
           <div
             className={`flex items-center justify-center gap-1 ${
               isDeleted
@@ -576,6 +578,8 @@ const Contributions: React.FC = () => {
             </span>
           </div>
         </td>
+          )
+        }
       </tr>
     );
   })
