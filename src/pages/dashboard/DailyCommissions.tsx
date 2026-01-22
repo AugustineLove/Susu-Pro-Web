@@ -35,6 +35,9 @@ export const CommissionDay = () => {
       <h2 className="text-xl font-semibold">
         Commissions for {formatDate(state?.date)}
       </h2>
+      <h2>
+        Total Commissions: ₵{commissions.reduce((sum, c) => sum + Number(c.amount), 0).toLocaleString() || "0"}
+      </h2>
 
       {commissions.map(c => (
         <div key={c.id} className="p-4 border rounded-lg">

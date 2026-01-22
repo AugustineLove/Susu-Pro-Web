@@ -27,6 +27,7 @@ export type TransactionType = {
   reversed_by?: string;
   reversal_reason?: string;
   reversed_by_name?: string;
+  is_deleted?: boolean;
 };
 
 export type TransactionTotals = {

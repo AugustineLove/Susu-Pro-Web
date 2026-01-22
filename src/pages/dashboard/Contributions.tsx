@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Trash2, Calendar, Filter, Download, PiggyBank, Eye, User } from 'lucide-react';
+import { Search, Plus, Trash2, Calendar, Filter, Download, PiggyBank, Eye, User, Undo, Undo2 } from 'lucide-react';
 import { mockContributions, mockClients, Contribution, Transaction } from '../../data/mockData';
 import { useTransactions } from '../../contexts/dashboard/Transactions';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
@@ -446,55 +446,141 @@ const Contributions: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredContributions.length > 0 ? (
-                filteredContributions.map((contribution) => (
-                  <tr key={contribution.transaction_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                          <span className="text-indigo-600 font-medium text-sm">
-                            {contribution.customer_name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                          </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{contribution.customer_name}</div>
-                         <div className='text-xs text-gray-400'>Assigned Banker: {contribution.mobile_banker_name ? getStaffName(contribution.mobile_banker_id) : 'Unassigned'}</div>
-                        </div>
-                      </div>
-                    </td>
-                   
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-lg font-semibold text-gray-900">
-                        ¢{contribution.amount.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(contribution.transaction_date).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTransactionTypeColor(contribution.type || contribution.status)}`}>
-                        {formatMethod(contribution.type || contribution.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(contribution.status)}`}>
-                        {contribution.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                      {contribution.description ? contribution.description : 'Transaction recorded by '} <span className='font-bold'>{ contribution.description ? '' : `${getStaffName(contribution.recorded_staff_id)}`}</span>
-                    </td>
-                    <td>
-                        <button
-                            onClick={() => handleDeleteClick(contribution.transaction_id)}
-                            className="text-red-600 hover:text-red-900 transition-colors"
-                            title="Delete customer"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
+  filteredContributions.map((contribution) => {
+    const isDeleted = contribution.is_deleted;
+    console.log(isDeleted);
+    return (
+      <tr
+        key={contribution.transaction_id}
+        className={`transition ${
+          isDeleted
+            ? "bg-gray-100 text-gray-400 opacity-70"
+            : "hover:bg-gray-50"
+        }`}
+      >
+        {/* Customer */}
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="flex items-center">
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                isDeleted ? "bg-gray-200" : "bg-indigo-100"
+              }`}
+            >
+              <span
+                className={`font-medium text-sm ${
+                  isDeleted ? "text-gray-400" : "text-indigo-600"
+                }`}
+              >
+                {contribution.customer_name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </span>
+            </div>
+
+            <div className="ml-4">
+              <div className="text-sm font-medium">
+                {contribution.customer_name}
+              </div>
+              <div className="text-xs text-gray-400">
+                Assigned Banker:{" "}
+                {contribution.mobile_banker_name
+                  ? getStaffName(contribution.mobile_banker_id)
+                  : "Unassigned"}
+              </div>
+            </div>
+          </div>
+        </td>
+
+        {/* Amount */}
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="text-lg font-semibold">
+            ¢{Number(contribution.amount).toLocaleString()}
+          </div>
+        </td>
+
+        {/* Date */}
+        <td className="px-6 py-4 whitespace-nowrap text-sm">
+          {new Date(contribution.transaction_date).toLocaleDateString()}
+        </td>
+
+        {/* Type */}
+        <td className="px-6 py-4 whitespace-nowrap">
+          <span
+            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+              getTransactionTypeColor(
+                contribution.type || contribution.status
+              )
+            } ${isDeleted ? "opacity-60" : ""}`}
+          >
+            {formatMethod(contribution.type || contribution.status)}
+          </span>
+        </td>
+
+        {/* Status */}
+        <td className="px-6 py-4 whitespace-nowrap">
+          <span
+            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+              getStatusColor(contribution.status)
+            }`}
+          >
+            {contribution.status}
+          </span>
+
+          {isDeleted && (
+            <span className="ml-2 inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-gray-300 text-gray-700">
+              Reversed
+            </span>
+          )}
+        </td>
+
+        {/* Description */}
+        <td className="px-6 py-4 text-sm max-w-xs truncate">
+          {contribution.description ? (
+            contribution.description
+          ) : (
+            <>
+              Transaction recorded by{" "}
+              <span className="font-semibold">
+                {getStaffName(contribution.recorded_staff_id)}
+              </span>
+            </>
+          )}
+        </td>
+
+        {/* Reverse Action */}
+        <td className="px-6 py-4">
+          <div
+            className={`flex items-center justify-center gap-1 ${
+              isDeleted
+                ? "cursor-not-allowed opacity-50"
+                : "cursor-pointer"
+            }`}
+            onClick={() => {
+              if (!isDeleted) {
+                handleDeleteClick(contribution.transaction_id);
+              }
+            }}
+          >
+            <Undo2
+              className={`h-4 w-4 ${
+                isDeleted ? "text-gray-400" : "text-red-600"
+              }`}
+            />
+            <span
+              className={`text-sm font-medium ${
+                isDeleted ? "text-gray-400" : "text-red-600"
+              }`}
+            >
+              Reverse
+            </span>
+          </div>
+        </td>
+      </tr>
+    );
+  })
+) 
+ : (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center">
