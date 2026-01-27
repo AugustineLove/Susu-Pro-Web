@@ -21,7 +21,8 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  User2
+  User2,
+  Code
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useCustomers } from '../../contexts/dashboard/Customers';
@@ -92,14 +93,14 @@ const CustomerDetailsPage = () => {
   }
 }, [id]);
 
-
-
+  console.log(`Customer data: ${JSON.stringify(customer)}`);
   // Mock customer data - replace with your actual data fetching
   const customerData = {
     id: customer?.account_number,
     fullName: customer?.name,
     email: customer?.email || 'N/A',
     phone: customer?.phone_number,
+    momo_number: customer?.momo_number || 'N/A',
     address: `${customer?.city} - ${customer?.location}`,
     date_of_registration: customer?.date_of_registration,
     lastLogin: '2024-09-20',
@@ -112,6 +113,7 @@ const CustomerDetailsPage = () => {
     next_of_kin: customer?.next_of_kin,
     customer_id: customer?.id,
     city: customer?.city,
+    withdrawal_code: customer?.withdrawal_code,
     status: 'Active',
     profileImage: null,
     totalBalance: accounts.reduce((sum, acc) => Number(sum) + Number(acc.balance), 0),
@@ -809,42 +811,58 @@ const CustomerDetailsPage = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Account Information</h3>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Calendar className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Date Joined</p>
-                    <p className="font-medium text-gray-900">{formatDate(customerData.date_of_registration)}</p>
+              <div className="space-y-2 grid grid-cols-1 lg:grid-cols-2">
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Date Joined</p>
+                        <p className="font-medium text-gray-900">{formatDate(customerData.date_of_registration)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CreditCard className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Account Number</p>
+                        <p className="font-medium text-gray-900">{customerData.account_number}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Account Status</p>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {customerData.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <TrendingUp className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Daily Rate</p>
+                        <p className="font-medium text-gray-900">¢{customerData.dailyRate}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                    <Phone className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Mobile Money Number</p>
+                      <p className="font-medium text-gray-900">{customerData.momo_number}</p>
+                    </div>
                   </div>
+
+                    <div className="flex items-center space-x-3">
+                    <Code className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Secret Withdrawal Code</p>
+                      <p className="font-medium text-gray-900">{customerData.withdrawal_code}</p>
+                    </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <CreditCard className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Account Number</p>
-                    <p className="font-medium text-gray-900">{customerData.account_number}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Account Status</p>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      {customerData.status}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <TrendingUp className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Daily Rate</p>
-                    <p className="font-medium text-gray-900">¢{customerData.dailyRate}</p>
-                  </div>
-                </div>
+
               </div>
             </div>
-          </div>
+           </div>
         )}
       </div>
 

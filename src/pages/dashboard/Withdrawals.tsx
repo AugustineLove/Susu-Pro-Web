@@ -4,7 +4,7 @@ import { Commission, mockWithdrawals, Withdrawal } from '../../data/mockData';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
 import { TransactionType, useTransactions } from '../../contexts/dashboard/Transactions';
 import { toast } from 'react-hot-toast';
-import { companyId, companyName, parentCompanyName, userPermissions, userUUID } from '../../constants/appConstants';
+import { companyId, companyName, makeSuSuProName, parentCompanyName, userPermissions, userUUID } from '../../constants/appConstants';
 import { CommissionModal } from '../../components/financeModals';
 import { FormDataState } from './Finance';
 
@@ -84,25 +84,6 @@ const approvedWithdrawalsThisMonth = transactions.filter(w => {
     date.getFullYear() === currentYear
   );
 });
-
-const makeSuSuProName = (companyName: string) => {
-  if (!companyName || typeof companyName !== 'string') return 'SuSuPro';
-
-  // Get words (handles extra spaces, punctuation, hyphens)
-  const words = companyName
-    .trim()
-    .split(/[\s\-_.]+/g)                // split on space, hyphen, underscore, dot
-    .filter(Boolean);
-
-  // Collect initials (letters only), uppercase
-  const initials = words
-    .map(w => (w.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/)?.[0] || '')) // first letter (incl. accents)
-    .join('')
-    .toUpperCase();
-
-  return `${initials}SuSu`;
-}
-
 
   const handleApproveClick = async (withdrawaId: string, customerPhone: string, customerName: string, withdrawalAmount: string) => {
     if (isApproving) return;

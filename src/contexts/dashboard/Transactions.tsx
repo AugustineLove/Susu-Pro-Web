@@ -57,6 +57,7 @@ type TransactionContextType = {
   approveTransaction: (transactionId: string, messageData: Record<string, any>) => Promise<boolean>;
   rejectTransaction: (transactionId: string) => Promise<boolean>;
   reverseTransaction: (staffId: string,transactionId: string, reason: string) => Promise<any>;
+  sendMessage: (messageData: Record<string, any>) => Promise<boolean>;  
 };
 
 const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
@@ -97,7 +98,7 @@ const calculateTotals = (transactions: TransactionType[]): TransactionTotals => 
       } else if (status === 'pending') {
         totals.totalPendingDeposits += amount;
       }
-    } else if (type === 'withdrawal') {
+    } else if (type === 'withdrawal' && status !== 'reversed') {
       totals.totalWithdrawals += amount;
       
       if (status === 'approved') {
@@ -520,6 +521,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     approveTransaction,
     rejectTransaction,
     reverseTransaction,
+    sendMessage,
   };
 
   return (

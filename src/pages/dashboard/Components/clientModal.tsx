@@ -4,11 +4,12 @@ import { Account, Customer } from "../../../data/mockData";
 import { useCustomers } from "../../../contexts/dashboard/Customers";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useStaff } from "../../../contexts/dashboard/Staff";
-import { getEffectiveCompanyId } from "../../../constants/appConstants";
+import { getEffectiveCompanyId, makeSuSuProName, parentCompanyName } from "../../../constants/appConstants";
 import toast from "react-hot-toast";
 import { useAccountNumber } from "../../../contexts/dashboard/NextAccountNumber";
 import { useAccountNumbers } from "../../../contexts/dashboard/NextAccNumbers";
 import { registerVersion } from "firebase/app";
+import { useTransactions } from "../../../contexts/dashboard/Transactions";
 
 // Staff Context (you can import this from your actual context file)
 interface Staff {
@@ -47,11 +48,12 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
   const [selectedStaffId, setSelectedStaffId] = useState<string>(client?.registered_by || '');
   const [nextAccNumber, setNextAccountNumber] = useState<string | null>(null);
   const { nextAccountNumber, refreshAccountNumber, loading } = useAccountNumber();
-
+  const { sendMessage } = useTransactions();
   const [formData, setFormData] = useState({
     name: client?.name || '',
     email: client?.email || '',
     phone_number: client?.phone_number || '',
+    momo_number: client?.momo_number || '',
     account_number: client?.account_number || nextAccNumber || '',
     city: client?.city || '',
     id_card: client?.id_card || '',
@@ -138,8 +140,13 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
     const addAccount = {"account_type": formData.account_type,} as Account;
       console.log('Updating client:', data);
       console.log('Add account', addAccount);
-      await addCustomer(data, formData.account_type, account_number);
+      const addedCustomerData = await addCustomer(data, formData.account_type, account_number);
       await fetchLastAccountNumbers();
+      await sendMessage({
+        messageTo: formData.phone_number,
+        messageFrom: makeSuSuProName(parentCompanyName),
+        message: `Dear ${formData.name}, you have successfully opened a ${formData.account_type} account with ${parentCompanyName}. Your customer account number is, ${addedCustomerData.data.account_number}. \nYour secret withdrawal code is ${addedCustomerData.data.withdrawal_code}. Please do not share this code with anyone. \nThank you for choosing us!`
+      });
       toast.success('Client added successfully', { id: toastId });
       setStartedAdding(false);
       // window.location.reload();
@@ -231,6 +238,15 @@ export const ClientModal: React.FC<ClientModalProps> = ({ account, client, onSav
                 onChange={handleChange}
                 required
                 error={errors.phone_number}
+                icon={<Phone className="w-4 h-4" />}
+              />
+
+              <FormField
+                label="Momo Number"
+                name="momo_number"
+                value={formData.momo_number}
+                onChange={handleChange}
+                error={errors.momo_number}
                 icon={<Phone className="w-4 h-4" />}
               />
 

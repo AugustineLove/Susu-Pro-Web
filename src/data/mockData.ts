@@ -86,6 +86,7 @@ export interface Customer {
   email: string;
   phone_number: string;
   account_number?: string;
+  momo_number?: string;
   address: string;
   registered_by_name?: string;
   created_at: string; 
@@ -104,6 +105,7 @@ export interface Customer {
   registered_by: string;
   parentPhone?: string;
   customer_id?: string;
+  withdrawal_code?: string;
 }
 
 export interface Transaction {

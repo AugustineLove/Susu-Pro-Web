@@ -148,6 +148,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           'account_number': account_number,
         })
         await fetchCustomers();
+        return added;
       } else {
         const errorText = await res.text();
         console.error('Failed to add customer:', errorText);
