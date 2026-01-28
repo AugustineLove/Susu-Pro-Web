@@ -480,7 +480,7 @@ const CustomerDetailsPage = () => {
             </div>
 
             <h4 className="text-lg font-semibold text-gray-900 mb-1">
-              {account.account_type}
+              {account.account_type.charAt(0).toUpperCase() + account.account_type.slice(1)}
             </h4>
 
             <p className="text-sm text-gray-600 mb-3">

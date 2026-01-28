@@ -9,6 +9,7 @@ import DeleteTransactionModal from '../../components/deleteTransactionModal';
 import toast from 'react-hot-toast';
 import { useCustomers } from '../../contexts/dashboard/Customers';
 import { userPermissions } from '../../constants/appConstants';
+import { handlePdfExport } from '../../utils/helper';
 
 const Contributions: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +17,8 @@ const Contributions: React.FC = () => {
   const [methodFilter, setMethodFilter] = useState('all');
   const [dateRange, setDateRange] = useState('all');
   const [staffFilter, setStaffFilter] = useState('all');
+  const [officeStaffFilter, setOfficeStaffFilter] = useState('all');
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -41,6 +44,12 @@ const Contributions: React.FC = () => {
       // Staff filter
       const matchesStaff = staffFilter === 'all' || contribution.mobile_banker_id === staffFilter;
       
+      // Transaction type filter
+      const matchesType = transactionTypeFilter === 'all' || contribution.type === transactionTypeFilter;
+      
+      // Office staff filter
+      const matchesOfficeStaff = officeStaffFilter === 'all' || contribution.recorded_staff_id === officeStaffFilter;
+
       // Date range filter
       let matchesDate = true;
       const contributionDate = new Date(contribution.transaction_date);
@@ -72,9 +81,9 @@ const Contributions: React.FC = () => {
         }
       }
       
-      return matchesSearch && matchesStatus && matchesStaff && matchesDate;
+      return matchesSearch && matchesStatus && matchesStaff && matchesDate && matchesType && matchesOfficeStaff;
     });
-  }, [transactions, searchTerm, statusFilter, staffFilter, dateRange, startDate, endDate]);
+  }, [transactions, searchTerm, statusFilter, staffFilter, transactionTypeFilter, officeStaffFilter, dateRange, startDate, endDate]);
 
   // Calculate filtered stats
   const filteredStats = useMemo(() => {
@@ -208,6 +217,8 @@ const Contributions: React.FC = () => {
     setSearchTerm('');
     setStatusFilter('all');
     setStaffFilter('all');
+    setTransactionTypeFilter('all');
+    setOfficeStaffFilter('all');
     setDateRange('all');
     setStartDate('');
     setEndDate('');
@@ -229,7 +240,9 @@ const Contributions: React.FC = () => {
           </p>
         </div>
         <div className="flex space-x-3">
-          <button className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center">
+          <button className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+          onClick={()=> handlePdfExport(filteredContributions)}
+          >
             <Download className="h-5 w-5 mr-2" />
             Export
           </button>
@@ -339,18 +352,50 @@ const Contributions: React.FC = () => {
 
           {/* Staff Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Staff Member</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Staff</label>
+            <select
+              value={officeStaffFilter}
+              onChange={(e) => setOfficeStaffFilter(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="all">All Staff</option>
+              {staffList.filter(staff => staff.role?.toLocaleLowerCase() === 'teller' || staff.role?.toLocaleLowerCase() === 'accountant').map(staff => (
+                <option key={staff.id} value={staff.id}>
+                  {staff.full_name} {staff.staff_id ? `(${staff.staff_id})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Mobile Banker Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Bankers</label>
             <select
               value={staffFilter}
               onChange={(e) => setStaffFilter(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="all">All Staff</option>
-              {staffList.map(staff => (
+              {staffList.filter(staff => staff.role?.toLocaleLowerCase() === 'mobile banker' || staff.role?.toLocaleLowerCase() === 'mobile_banker').map(staff => (
                 <option key={staff.id} value={staff.id}>
-                  {staff.full_name}
+                  {staff.full_name} {staff.staff_id ? `(${staff.staff_id})` : ''}
                 </option>
               ))}
+            </select>
+          </div>
+
+          {/* Transaction Type Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select
+              value={transactionTypeFilter}
+              onChange={(e) => setTransactionTypeFilter(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="all">All Types</option>
+              <option value="deposit">Deposit</option>
+              <option value="withdrawal">Withdrawal</option>
+              <option value="commission">Commission</option>
             </select>
           </div>
 

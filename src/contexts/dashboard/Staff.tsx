@@ -10,6 +10,7 @@ export interface Staff {
   phone_number?: string;
   created_at?: string;
   company_id: string;
+  account_number?: string;
   // Add other fields as needed
 }
 

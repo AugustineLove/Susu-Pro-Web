@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('susupro_company');
     localStorage.removeItem('susupro_token');
     window.location.reload();
-  };
+   };
 
   return (
     <AuthContext.Provider value={{ company, login, signUp, logout, isLoading }}>

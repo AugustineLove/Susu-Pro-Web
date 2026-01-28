@@ -57,7 +57,7 @@ const Overview: React.FC = () => {
     },
     {
       title: 'Total Withdrawals',
-      value: `¢${totals?.totalApprovedWithdrawals}` || 0,
+      value: `¢${totals?.totalApprovedWithdrawals.toLocaleString()}` || 0,
       subtitle: 'All total customer withdrawals',
       icon: PiggyBank,
       color: 'green',
