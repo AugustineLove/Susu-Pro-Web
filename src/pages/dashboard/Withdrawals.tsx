@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import { companyId, companyName, makeSuSuProName, parentCompanyName, userPermissions, userUUID } from '../../constants/appConstants';
 import { CommissionModal } from '../../components/financeModals';
 import { FormDataState } from './Finance';
+import { useCommissionStats } from '../../contexts/dashboard/Commissions';
 
 const Withdrawals: React.FC = () => {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>(mockWithdrawals);
@@ -23,7 +24,7 @@ const Withdrawals: React.FC = () => {
     amount: 0,
   }
   const [commissionFormData, setCommissionFormData] = useState<FormDataState>(defaultCommissionFormData);
-
+  const { refreshCommissionStats } = useCommissionStats();
  
 
   const submitCommission = async (formData: FormDataState, transactionId: string, companyId: string) => {
@@ -351,7 +352,10 @@ const approvedWithdrawalsThisMonth = transactions.filter(w => {
                         !userPermissions.PROCESS_TRANSACTIONS && (
                           <div className="ml-2">
                           <button
-                            onClick={() => reverseTransaction(userUUID, withdrawal.transaction_id, 'Wrong amount paid')}
+                            onClick={ async () =>{
+                              reverseTransaction(userUUID, withdrawal.transaction_id, 'Wrong amount paid')
+                              await refreshCommissionStats();
+                            }}
                             className="bg-yellow-600 text-white px-3 py-1 rounded text-xs hover:bg-yellow-700 transition-colors"
                           >
                             <Undo2 className="h-4 w-4 inline-block mr-1" />

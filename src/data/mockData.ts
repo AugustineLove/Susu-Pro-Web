@@ -107,6 +107,36 @@ export interface Customer {
   customer_id?: string;
   withdrawal_code?: string;
 }
+// types/commission.ts
+export interface Commission {
+  id: string;
+  account_id: string;
+  customer_id: string;
+  company_id: string;
+  amount: number;
+  status: "approved" | "reversed" | "pending";
+  transaction_id?: string;
+  reversed_at?: string | null;
+  reversed_by?: string | null;
+  created_at: string;
+}
+
+export interface CommissionStats {
+  total_commissions: number;
+
+  total_amount: number;
+  approved_amount: number;
+  reversed_amount: number;
+  pending_amount: number;
+
+  approved_count: number;
+  reversed_count: number;
+  pending_count: number;
+
+  today_amount: number;
+  this_month_amount: number;
+}
+
 
 export interface Transaction {
   id?: string;

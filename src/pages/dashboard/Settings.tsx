@@ -248,7 +248,7 @@ const verifyOtp = async () => {
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: User },
-    { id: 'staff', name: 'Staff', icon: User },  
+    ...( userRole?.toLowerCase() === 'admin' ? [{ id: 'staff', name: 'Staff', icon: User }] : []),   
     { id: 'security', name: 'Security', icon: Lock },
     { id: 'notifications', name: 'Notifications', icon: Bell },
     { id: 'company', name: 'Company', icon: CreditCard }

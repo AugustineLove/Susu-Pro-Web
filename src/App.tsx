@@ -44,6 +44,7 @@ import { AccountNumberProvider } from './contexts/dashboard/NextAccountNumber';
 import { userUUID } from './constants/appConstants';
 import { AccountNumberProviders } from './contexts/dashboard/NextAccNumbers';
 import { CommissionDay } from './pages/dashboard/DailyCommissions';
+import { CommissionStatsProvider } from './contexts/dashboard/Commissions';
 
 function App() {
   return (
@@ -80,7 +81,9 @@ function App() {
                             <FloatActivityProvider>
                               <AccountNumberProvider>
                                 <AccountNumberProviders>
-                                  <DashboardLayout />
+                                  <CommissionStatsProvider>
+                                    <DashboardLayout />
+                                  </CommissionStatsProvider>
                                 </AccountNumberProviders>
                               </AccountNumberProvider>
                             </FloatActivityProvider>

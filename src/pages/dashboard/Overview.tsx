@@ -9,6 +9,7 @@ import { useCustomers } from '../../contexts/dashboard/Customers';
 import {TransactionModal} from './Components/transactionModal';
 import { userPermissions } from '../../constants/appConstants';
 import { useFinance } from '../../contexts/dashboard/Finance';
+import { useCommissionStats } from '../../contexts/dashboard/Commissions';
 
 const Overview: React.FC = () => {
  
@@ -22,6 +23,7 @@ const Overview: React.FC = () => {
   const { data, fetchFinanceData, addExpense, addPayment, addAsset, addBudget, loading } = useFinance();
   const pendingWithdrawals = transactions?.filter(w => w && w.status === 'pending').length || 0;
   const recentTransactions = transactions.slice(0, 5);
+  const { commissionStats } = useCommissionStats();
   const recentWithdrawals = mockWithdrawals
     .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime())
     .slice(0, 3);
@@ -65,7 +67,7 @@ const Overview: React.FC = () => {
     },
     {
       title: 'Total Commission',
-      value: `¢${totals?.totalCommissions}` || 0,
+      value: `¢${commissionStats?.total_amount}` || 0,
       subtitle: 'All total customer commissions',
       icon: TrendingUp,
       color: 'green',

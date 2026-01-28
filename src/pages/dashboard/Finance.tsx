@@ -36,6 +36,7 @@ import { useCustomers } from '../../contexts/dashboard/Customers';
 import { useAccounts } from '../../contexts/dashboard/Account';
 import { useTransactions } from '../../contexts/dashboard/Transactions';
 import { useNavigate } from 'react-router-dom';
+import { useCommissionStats } from '../../contexts/dashboard/Commissions';
 
 interface FinanceData{
   expenses: Expense[];
@@ -400,6 +401,7 @@ const FinancialDashboard: React.FC = () => {
     const [categoryFilter, setCategoryFilter] = useState("All Categories");
   const [statusFilter, setStatusFilter] = useState("All Status");
   const { deductCommission } = useTransactions();
+  const { commissionStats, commissions } = useCommissionStats();
   useEffect(() => {
     fetchFinanceData();
   }, [companyId]);
@@ -429,9 +431,9 @@ const calculateOperationalMetrics = () => {
     })
     .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   
-  const grossProfit = (monthlyRevenue + totalCommissionThisMonth) - monthlyExpenses;
-  const profitMargin = (monthlyRevenue + totalCommissionThisMonth) > 0 ? (grossProfit / (monthlyRevenue + totalCommissionThisMonth)) * 100 : 0;
-  const operatingExpenseRatio = (monthlyRevenue + totalCommissionThisMonth) > 0 ? (monthlyExpenses / (monthlyRevenue + totalCommissionThisMonth)) * 100 : 0;
+  const grossProfit = (monthlyRevenue + commissionStats?.this_month_amount) - monthlyExpenses;
+  const profitMargin = (monthlyRevenue + commissionStats?.this_month_amount) > 0 ? (grossProfit / (monthlyRevenue + commissionStats?.this_month_amount)) * 100 : 0;
+  const operatingExpenseRatio = (monthlyRevenue + commissionStats?.this_month_amount) > 0 ? (monthlyExpenses / (monthlyRevenue + commissionStats?.this_month_amount)) * 100 : 0;
 
   // Assets & ROI
   const totalAssets = assets.reduce((sum, a) => sum + (Number(a.value) || 0), 0);
@@ -458,25 +460,10 @@ const calculateOperationalMetrics = () => {
   };
 };
 
-  const commissions = useMemo(() => {
-      return transactions.filter(t => t.type === "commission");
-      }, [transactions]);
-
-  const totalCommissionThisMonth = useMemo(() => {
-    const now = new Date();
-    return commissions.reduce((sum, c) => {
-      const d = new Date(c.transaction_date);
-      if (
-        d.getMonth() === now.getMonth() &&
-        d.getFullYear() === now.getFullYear()
-      ) {
-        sum += Number(c.amount);
-      }
-      return sum;
-    }, 0);
-  }, [commissions]);
+  // const commissions = useMemo(() => {
+  //     return transactions.filter(t => t.type === "commission");
+  //     }, [transactions]);
   
-
   const operationalMetrics = calculateOperationalMetrics();
 
   const uniqueCategories = ["All Categories", ...new Set(expenses.map(e => e.category))];
@@ -768,7 +755,7 @@ const calculateOperationalMetrics = () => {
               <div>
                 <p className="text-sm text-gray-600 mb-1">Monthly Commission</p>
                 <h3 className="text-2xl font-bold text-gray-900">
-                  ¢{totalCommissionThisMonth.toLocaleString()}
+                  ¢{commissionStats?.this_month_amount.toLocaleString()}
                 </h3>
                 <div className="flex items-center mt-2">
                   {/* <span className="text-sm text-gray-600">
@@ -844,7 +831,7 @@ const calculateOperationalMetrics = () => {
             <div className="flex justify-between items-center py-2 border-b border-gray-50">
               <span className="text-sm font-medium text-gray-600">Commission</span>
               <span className="text-sm font-semibold text-green-600">
-                +¢{totalCommissionThisMonth.toLocaleString()}
+                +¢{commissionStats?.this_month_amount.toLocaleString()}
               </span>
             </div>
 
@@ -1062,10 +1049,13 @@ const CommissionTab = ({
 
   // 2️⃣ Group commissions by date
   const commissionsByDate = useMemo(() => {
-    return commissions.reduce((acc, commission) => {
-      if (!commission.transaction_date) return acc;
+  if (!Array.isArray(commissions)) return {};
 
-      const dateKey = new Date(commission.transaction_date)
+  return commissions.reduce<Record<string, typeof commissions>>(
+    (acc, commission) => {
+      if (!commission.commission_date) return acc;
+
+      const dateKey = new Date(commission.commission_date)
         .toISOString()
         .split("T")[0]; // YYYY-MM-DD
 
@@ -1073,15 +1063,18 @@ const CommissionTab = ({
       acc[dateKey].push(commission);
 
       return acc;
-    }, {});
-  }, [commissions]);
+    },
+    {}
+  );
+}, [commissions]);
+
 
   // 3️⃣ Convert grouped object to array
   const commissionDays = useMemo(() => {
     return Object.entries(commissionsByDate)
       .map(([date, items]) => ({
         date,
-        total: items.reduce((sum, i) => sum + Number(i.amount), 0),
+        total: items.reduce((sum, i) => sum + Number(i.commission_amount), 0),
         count: items.length,
         items
       }))
@@ -1089,9 +1082,6 @@ const CommissionTab = ({
   }, [commissionsByDate]);
 
   // 4️⃣ Monthly total
-
-  const totalCommission = totals?.totalCommissions || 0;
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1121,7 +1111,7 @@ const CommissionTab = ({
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <h3 className="text-sm text-gray-600">Overall Commission</h3>
           <p className="text-2xl font-bold mt-2">
-            ₵{totalCommission.toLocaleString()}
+            ₵{commissionStats?.total_amount.toLocaleString()}
           </p>
         </div>
 
@@ -1133,7 +1123,7 @@ const CommissionTab = ({
             <Receipt className="w-5 h-5 text-green-600" />
           </div>
           <p className="text-2xl font-bold mt-2">
-            ₵{totalCommissionThisMonth.toLocaleString()}
+            ₵{commissionStats?.this_month_amount.toLocaleString()}
           </p>
         </div>
 
@@ -1142,7 +1132,7 @@ const CommissionTab = ({
             Total Transactions
           </h3>
           <p className="text-2xl font-bold mt-2">
-            {commissions.length}
+            {commissionStats?.total_commissions}
           </p>
         </div>
       </div>
@@ -1610,9 +1600,16 @@ const AssetsTab = () => {
       const monthRevenue = revenue
         .filter(r => r.payment_date?.startsWith(monthKey))
         .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-      const monthCommission = commissions.filter(c => c.transaction_date?.startsWith(monthKey))
-        .reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
-
+      const monthCommission = commissions
+  .filter(
+    c =>
+      c.commission_status === "approved" || c.commission_status === "paid" &&
+      c.commission_date?.startsWith(monthKey)
+  )
+  .reduce(
+    (sum, c) => sum + (Number(c.commission_amount) || 0),
+    0
+  );
       return {
         month: date.toLocaleDateString('en', { month: 'short', year: 'numeric' }),
         revenue: monthRevenue,

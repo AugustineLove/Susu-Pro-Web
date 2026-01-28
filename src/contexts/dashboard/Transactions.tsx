@@ -4,6 +4,7 @@ import { useCustomers } from './Customers';
 import { useStats } from './DashboardStat';
 import { companyId } from '../../constants/appConstants';
 import toast from 'react-hot-toast';
+import { useCommissionStats } from './Commissions';
 
 export type TransactionType = {
   transaction_id: string;
@@ -106,7 +107,7 @@ const calculateTotals = (transactions: TransactionType[]): TransactionTotals => 
       } else if (status === 'pending') {
         totals.totalPendingWithdrawals += amount;
       }
-    } else if (type === 'commission') {
+    } else if (type === 'commission' && status !== 'reversed') {
       totals.totalCommissions += amount;
     }
 
