@@ -13,6 +13,7 @@ const Clients: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
   const [staffFilter, setStaffFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [dateRangeFilter, setDateRangeFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false); 
   const [editingClient, setEditingClient] = useState<Customer | null>(null);
@@ -37,6 +38,8 @@ const Clients: React.FC = () => {
     [customers]
   );
 
+  const statuses = ['Active', 'Inactive'];
+
   // Enhanced filtering logic
   const filteredClients = useMemo(() => {
     return customers.filter(customer => {
@@ -57,6 +60,9 @@ const Clients: React.FC = () => {
 
       // Staff filter
       const matchesStaff = staffFilter === 'all' || customer.registered_by_name === staffFilter;
+
+      // Active and Inactive
+      const matchesStatus = statusFilter === 'all' || customer.status === statusFilter;
 
       // Date range filter
       let matchesDateRange = true;
@@ -83,9 +89,9 @@ const Clients: React.FC = () => {
         }
       }
 
-      return matchesSearch && matchesLocation && matchesStaff && matchesDateRange;
+      return matchesSearch && matchesLocation && matchesStaff && matchesStatus && matchesDateRange;
     });
-  }, [customers, searchTerm, locationFilter, staffFilter, dateRangeFilter]);
+  }, [customers, searchTerm, locationFilter, staffFilter, statusFilter, dateRangeFilter]);
 
   // Enhanced statistics calculations
   const filteredStats = useMemo(() => {
@@ -125,6 +131,7 @@ const Clients: React.FC = () => {
     setLocationFilter('all');
     setStaffFilter('all');
     setDateRangeFilter('all');
+    setStatusFilter('all');
   };
 
   // Export filtered data
@@ -207,7 +214,7 @@ const Clients: React.FC = () => {
   };
 
   // Check if any filters are active
-  const hasActiveFilters = searchTerm !== '' || locationFilter !== 'all' || staffFilter !== 'all' || dateRangeFilter !== 'all';
+  const hasActiveFilters = searchTerm !== '' || locationFilter !== 'all' || staffFilter !== 'all' || statusFilter !== 'all' || dateRangeFilter !== 'all';
 
   return (
     <div className="space-y-6">
@@ -372,6 +379,20 @@ const Clients: React.FC = () => {
               ))}
             </select>
 
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="all">Status</option>
+              {statuses.map((status, index) => (
+                <option key={index} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+
             {/* Date Range Filter */}
             <select
               value={dateRangeFilter}
@@ -467,9 +488,16 @@ const Clients: React.FC = () => {
                       <div className="text-sm text-gray-500">{customer.phone_number}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <span className="text-green-600">
+                      <div className='flex flex-col items-center justify-center'>
+                          <span className="text-green-600">
                         ¢{parseFloat(customer.total_balance_across_all_accounts || '0').toFixed(2)}
                       </span>
+                      <div className={customer.status === 'Active' ?  `bg-green-200 rounded-lg flex items-center justify-center px-2` : 'bg-red-300 rounded-lg flex items-center justify-center px-2'}>
+                          <span className={customer.status === 'Active' ? `text-green-600` : `text-red-600` }>
+                        {customer.status}
+                      </span>
+                      </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-sm rounded-full bg-gray-100 text-gray-800">

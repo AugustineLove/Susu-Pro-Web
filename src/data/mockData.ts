@@ -106,6 +106,7 @@ export interface Customer {
   parentPhone?: string;
   customer_id?: string;
   withdrawal_code?: string;
+  status?: string;
 }
 // types/commission.ts
 export interface Commission {

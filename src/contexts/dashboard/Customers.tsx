@@ -42,7 +42,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return;
       }
 
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/customers/company/${companyId}`);
+      const res = await fetch(`http://localhost:5000/api/customers/company/${companyId}`);
 
       if (res.ok) {
         const data = await res.json();
