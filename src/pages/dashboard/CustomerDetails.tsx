@@ -66,7 +66,7 @@ const CustomerDetailsPage = () => {
    const [showAddModal, setShowAddModal] = useState(false); 
     const [editingClient, setEditingClient] = useState<Customer | null>(null);
     const { fetchCustomerById, editCustomer, addCustomer, refreshCustomers, deleteCustomer, customer, customerLoading } = useCustomers();
-  const { accounts, customerLoans, refreshAccounts, addAccount } = useAccounts();
+  const { accounts, customerLoans, refreshAccounts, addAccount, toggleAccountStatus } = useAccounts();
   const { fetchCustomerTransactions, customerTransactions } = useTransactions();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -612,20 +612,20 @@ const { transferBetweenAccounts } = useTransactions();
                       'Transfer'
                     )
                     }
-        </button>
-      </div>
+                    </button>
+                  </div>
 
-    </div>
-  </div>
-)}
+                </div>
+              </div>
+            )}
 
             {/* ---- top icon + status ---- */}
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <Building className="w-5 h-5 text-white" />
+                
               </div>
-
-              <span
+               {/* <span
                 className={`text-xs px-2 py-1 rounded-full ${
                   account.status === 'Active'
                     ? 'bg-green-100 text-green-700'
@@ -633,7 +633,29 @@ const { transferBetweenAccounts } = useTransactions();
                 }`}
               >
                 {account.status}
+              </span> */}
+
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+              <span className="text-sm font-medium text-gray-700 mr-2">
+                {account.status}
               </span>
+
+              <button
+                onClick={async () => {
+                  await toggleAccountStatus(account.id);
+                  await refreshAccounts(id || '');
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                  ${account.status === 'Active' ? 'bg-green-500' : 'bg-gray-300'}
+                `}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                    ${account.status === 'Active' ? 'translate-x-6' : 'translate-x-1'}
+                  `}
+                />
+              </button>
+            </div>
             </div>
 
             <h4 className="text-lg font-semibold text-gray-900 mb-1">

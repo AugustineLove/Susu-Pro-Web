@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Account } from '../../data/mockData';
-import { companyId } from '../../constants/appConstants';
+import { companyId, userUUID } from '../../constants/appConstants';
+import toast from 'react-hot-toast';
 
 interface AccountsContextType {
   accounts: Account[];
@@ -11,6 +12,7 @@ interface AccountsContextType {
   addAccount: (newAccount: Omit<Account, 'id' | 'created_at'>) => Promise<boolean>;
   refreshAccounts: (customerId: string) => void;
   fetchLoanAccounts: (companyId: string) => void;
+  toggleAccountStatus: (accountId: string) => void;
   setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
 }
 
@@ -117,12 +119,53 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     }
 
+    const toggleAccountStatus = async (accountId: string) => {
+    try {
+    setLoading(true);
+    const toastId = toast.loading(`Updating...`)
+    const res = await fetch(
+      `https://susu-pro-backend.onrender.com/api/accounts/${accountId}/toggle-status`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          company_id: companyId,
+          staff_id: userUUID,
+        }),
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message);
+        }
+
+        // 🔁 Update locally
+        setAccounts(prev =>
+          prev.map(acc =>
+            acc.id === accountId ? data.data : acc
+          )
+        );
+
+        toast.success(data.message, {id: toastId});
+
+      } catch (err: any) {
+        toast.error(err.message || "Failed to update account status");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+
     useEffect(() => {
     fetchAllCompanyLoans(companyId);
     }, []);
 
   return (
-    <AccountsContext.Provider value={{ accounts, customerLoans, companyLoans, loading, loadingLoans, refreshAccounts: fetchAccounts, addAccount, setAccounts, fetchLoanAccounts: fetchAllCompanyLoans }}>
+    <AccountsContext.Provider value={{ accounts, customerLoans, companyLoans, loading, loadingLoans, refreshAccounts: fetchAccounts, addAccount, setAccounts, fetchLoanAccounts: fetchAllCompanyLoans, toggleAccountStatus }}>
       {children}
     </AccountsContext.Provider>
   );

@@ -130,7 +130,8 @@ useEffect(() => {
 const filteredCustomers = customers.filter(customer =>
   (customer.name || "").toLowerCase().includes(customerSearch.toLowerCase()) ||
   (customer.phone_number || "").toLowerCase().includes(customerSearch.toLowerCase()) ||
-  (customer.email || "").toLowerCase().includes(customerSearch.toLowerCase())
+  (customer.email || "").toLowerCase().includes(customerSearch.toLowerCase()) ||
+  (customer.account_number || "").toLowerCase().includes(customerSearch.toLowerCase())
 );
 
   // Set initial customer and account if editing
@@ -221,7 +222,7 @@ const filteredCustomers = customers.filter(customer =>
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.account_id) newErrors.account_id = 'Please select a customer';
+    if (!formData.account_id) newErrors.account_id = 'Please select a customer account';
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
       newErrors.amount = 'Please enter a valid amount greater than 0';
     }
@@ -321,7 +322,7 @@ const filteredCustomers = customers.filter(customer =>
                     value={customerSearch}
                     onChange={handleCustomerSearch}
                     onFocus={() => setShowCustomerDropdown(true)}
-                    placeholder="Type customer name, phone, or email..."
+                    placeholder="Type customer name, account number, phone, or email..."
                     className={`w-full px-4 py-3 pr-10 border rounded-xl focus:ring-2 focus:ring-emerald-500 transition-colors ${
                       errors.account_id 
                         ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
@@ -452,7 +453,7 @@ const filteredCustomers = customers.filter(customer =>
           {accounts.map((account) => {
             const isNormalAccount = account.account_type.toLowerCase() === "normal";
             const isTellerRestricted =
-              userRole === "teller" && isNormalAccount;
+              userRole === "teller" && isNormalAccount || account.status === 'Inactive';
 
             const isSelected = selectedAccount?.id === account.id;
 
