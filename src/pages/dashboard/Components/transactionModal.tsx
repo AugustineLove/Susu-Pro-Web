@@ -226,6 +226,7 @@ const filteredCustomers = customers.filter(customer =>
       newErrors.amount = 'Please enter a valid amount greater than 0';
     }
     if (!formData.staked_by) newErrors.staked_by = 'Please select who is creating this transaction';
+    if(!formData.description || formData.description == '') newErrors.description = 'Description is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -233,7 +234,10 @@ const filteredCustomers = customers.filter(customer =>
 
   const handleSubmit = async () => {
     const toastId= toast.loading('Adding transaction...');
-    if (!validateForm()) toast.error('Please complete the form.', {id: toastId});
+    if (!validateForm()){
+       toast.error('Please complete the form.', {id: toastId});
+       return
+    };
     const status = formData.transaction_type === 'withdrawal' ? 'pending' : 'completed';
     const transactionData = {
       ...formData,
@@ -626,19 +630,29 @@ const filteredCustomers = customers.filter(customer =>
 
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <FileText className="w-4 h-4 mr-2 text-gray-500" />
-                  Description (Optional)
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors resize-none"
-                  placeholder="Add notes about this transaction..."
-                />
-              </div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                <FileText className="w-4 h-4 mr-2 text-gray-500" />
+                Description <span className="text-red-500 ml-1">*</span>
+              </label>
+
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows={3}
+                className={`w-full px-4 py-3 border rounded-xl transition-colors resize-none
+                  ${
+                    errors.description
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:ring-emerald-500 focus:border-emerald-500'
+                  }`}
+                placeholder="Add notes about this transaction..."
+              />
+
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+              )}
+            </div>
 
               <FormField
                 label="Transaction Date & Time"
