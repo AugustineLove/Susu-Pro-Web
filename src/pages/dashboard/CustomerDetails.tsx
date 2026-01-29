@@ -22,13 +22,14 @@ import {
   XCircle,
   AlertCircle,
   User2,
-  Code
+  Code,
+  ArrowLeftRight
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useCustomers } from '../../contexts/dashboard/Customers';
 import { useAccounts } from '../../contexts/dashboard/Account';
 import { useTransactions } from '../../contexts/dashboard/Transactions';
-import { userPermissions } from '../../constants/appConstants';
+import { companyId, userPermissions, userUUID } from '../../constants/appConstants';
 import { ClientModal } from './Components/clientModal';
 import { Account, Customer } from '../../data/mockData';
 import toast from 'react-hot-toast';
@@ -69,7 +70,14 @@ const CustomerDetailsPage = () => {
   const { fetchCustomerTransactions, customerTransactions } = useTransactions();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [fromAccountId, setFromAccountId] = useState("");
+const [toAccountId, setToAccountId] = useState("");
+const [amount, setAmount] = useState<number>(0);
+const [narration, setNarration] = useState("");
+
+const { transferBetweenAccounts } = useTransactions();
+
  const { id } = useParams();
  
  useEffect(() => {
@@ -230,6 +238,39 @@ const CustomerDetailsPage = () => {
   const handleDeleteAccount = () => {
 
   }
+
+  const handleTransfer = async () => {
+  if (!fromAccountId || !toAccountId || amount <= 0 || !narration) {
+    alert("Please fill all required fields");
+    return;
+  }
+
+  if (fromAccountId === toAccountId) {
+    alert("Cannot transfer to the same account");
+    return;
+  }
+
+  const payload = {
+    from_account_id: fromAccountId,
+    to_account_id: toAccountId,
+    amount: amount,
+    company_id: companyId,
+    created_by: userUUID,
+    created_by_type: 'staff',
+    description: narration
+  }
+
+  const res = await transferBetweenAccounts(payload);
+  await refreshAccounts(id || '');
+  if (res.success) {
+    setIsTransferModalOpen(false);
+    setFromAccountId("");
+    setToAccountId("");
+    setAmount(0);
+    setNarration("");
+  }
+};
+
 
 
   return (
@@ -423,24 +464,41 @@ const CustomerDetailsPage = () => {
         )}
 
         {activeTab === 'accounts' && (
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
 
-    {/* ===== HEADER ===== */}
-    <div className="flex items-center justify-between mb-6">
-      <h3 className="text-lg font-semibold text-gray-900">
-        Customer Accounts
-      </h3>
+            {/* ===== HEADER ===== */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Customer Accounts
+              </h3>
 
-      {userPermissions.ALTER_ACCOUNT && (
-        <button
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          onClick={() => setIsAddModalOpen(true)}
-        >
-          <CreditCard className="w-4 h-4" />
-          <span>Add Account</span>
-        </button>
-      )}
-    </div>
+              <div className='flex space-x-3'>
+                  {userPermissions.ALTER_ACCOUNT && (
+                <button
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={() => setIsAddModalOpen(true)}
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>Add Account</span>
+                </button>
+              )}
+
+              {
+                userPermissions.ALTER_ACCOUNT && (
+                  <button
+                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  onClick={() => setIsTransferModalOpen(true)}
+
+                >
+                  <ArrowLeftRight className="w-4 h-4" />
+                  <span>Transfer</span>
+                </button>
+
+                )
+              }
+              </div>
+              
+            </div>
 
     {/* ========================================================= */}
     {/* ===== NORMAL ACCOUNTS GRID ===== */}
@@ -462,6 +520,104 @@ const CustomerDetailsPage = () => {
             key={account.id}
             className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow group"
           >
+
+            {isTransferModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
+              
+              <h3 className="text-lg font-semibold mb-4">
+                Transfer Between Accounts
+            </h3>
+
+            {/* FROM ACCOUNT */}
+            <div className="mb-4">
+              <label className="text-sm text-gray-600">From Account</label>
+              <select
+                className="w-full mt-1 border rounded-lg px-3 py-2"
+                value={fromAccountId}
+                onChange={(e) => setFromAccountId(e.target.value)}
+              >
+                <option value="">Select account</option>
+                {accounts.map(acc => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.account_type} — {acc.account_number} (
+                    {formatCurrency(acc.balance)})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* TO ACCOUNT */}
+            <div className="mb-4">
+              <label className="text-sm text-gray-600">To Account</label>
+              <select
+                className="w-full mt-1 border rounded-lg px-3 py-2"
+                value={toAccountId}
+                onChange={(e) => setToAccountId(e.target.value)}
+              >
+                <option value="">Select account</option>
+                {accounts
+                  .filter(acc => acc.id !== fromAccountId)
+                  .map(acc => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.account_type} — {acc.account_number}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* AMOUNT */}
+            <div className="mb-4">
+              <label className="text-sm text-gray-600">Amount</label>
+              <input
+                type="text"
+                className="w-full mt-1 border rounded-lg px-3 py-2"
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
+              />
+            </div>
+
+            {/* NARRATION */}
+            <div className="mb-6">
+              <label className="text-sm text-gray-600">Narration</label>
+              <input
+                type="text"
+                className="w-full mt-1 border rounded-lg px-3 py-2"
+                value={narration}
+                onChange={(e) => setNarration(e.target.value)}
+              />
+            </div>
+
+            {/* ACTIONS */}
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setIsTransferModalOpen(false)}
+                className="px-4 py-2 border rounded-lg"
+              >
+                Cancel
+              </button>
+
+              <button
+          onClick={handleTransfer}
+          disabled= {isLoading}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+        >
+          {
+                    isLoading ? (
+                      <div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Transferring...
+                </div>
+                    ) : (
+                      'Transfer'
+                    )
+                    }
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
 
             {/* ---- top icon + status ---- */}
             <div className="flex items-center justify-between mb-4">
@@ -879,6 +1035,7 @@ const CustomerDetailsPage = () => {
                 }}
               />
             )}
+            
 
           {/* Add Account Modal */}
       <AddAccountModal

@@ -58,6 +58,16 @@ type TransactionContextType = {
   approveTransaction: (transactionId: string, messageData: Record<string, any>) => Promise<boolean>;
   rejectTransaction: (transactionId: string) => Promise<boolean>;
   reverseTransaction: (staffId: string,transactionId: string, reason: string) => Promise<any>;
+  transferBetweenAccounts:(payload: {
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  narration?: string;
+  company_id: string;
+  created_by: string;
+  created_by_type: string;
+  description?:string;
+}) => Promise<any>;
   sendMessage: (messageData: Record<string, any>) => Promise<boolean>;  
 };
 
@@ -504,6 +514,73 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const transferBetweenAccounts = async (payload: {
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  narration?: string;
+  company_id: string;
+  created_by: string;
+  created_by_type: string;
+  description?:string;
+}) => {
+
+  try {
+    setLoading(true);
+    const toastId = toast.loading(`Transferring ${payload.amount} cedis...`);
+
+    const res = await fetch(
+      `https://susu-pro-backend.onrender.com/api/transactions/transfer-money`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+    console.log(`is transferring?: ${loading}`);
+    if (!res.ok) {
+      toast.error(data.message, {id: toastId})
+      throw new Error(data.message || "Transfer failed");
+    }
+
+    /* 🔁 Option 1: Refetch transactions */
+    await fetchTransactions();
+
+    /* 🔁 Option 2 (optional): Optimistic update
+       If backend returns both transactions
+    */
+    /*
+    setTransactions((prev) => [
+      data.data.transferOut,
+      data.data.transferIn,
+      ...prev,
+    ]);
+    */
+
+    toast.success('Success', {id: toastId})
+    return {
+      success: true,
+      message: data.message,
+      data: data.data,
+    };
+
+  } catch (err: any) {
+    setError(err.message || "Unable to transfer funds");
+
+    return {
+      success: false,
+      message: err.message,
+    };
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
@@ -522,6 +599,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     approveTransaction,
     rejectTransaction,
     reverseTransaction,
+    transferBetweenAccounts,
     sendMessage,
   };
 
