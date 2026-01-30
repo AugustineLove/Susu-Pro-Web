@@ -582,7 +582,15 @@ const Contributions: React.FC = () => {
         {/* Description */}
         <td className="px-6 py-4 text-sm max-w-xs truncate">
           {contribution.description ? (
-            contribution.description
+            <div>
+                <p>{contribution.description}</p>
+                <div className='text-sm flex'>
+              <p className='text-[11px] mr-1'>Transaction recorded by {" "}</p>
+              <span className="font-semibold text-[11px]">
+                {getStaffName(contribution.recorded_staff_id)}
+              </span>
+            </div>
+            </div>
           ) : (
             <>
               Transaction recorded by{" "}
