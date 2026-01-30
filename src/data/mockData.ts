@@ -120,6 +120,7 @@ export interface Commission {
   reversed_at?: string | null;
   reversed_by?: string | null;
   created_at: string;
+  date?: string;
 }
 
 export interface CommissionStats {

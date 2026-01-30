@@ -37,6 +37,7 @@ import { useAccounts } from '../../contexts/dashboard/Account';
 import { useTransactions } from '../../contexts/dashboard/Transactions';
 import { useNavigate } from 'react-router-dom';
 import { useCommissionStats } from '../../contexts/dashboard/Commissions';
+import NewRevenueModal, { RevenueItem } from './Components/revenueModal';
 
 interface FinanceData{
   expenses: Expense[];
@@ -54,6 +55,7 @@ interface Revenue {
   date: string;
   source: string;
   status: string;
+  notes?: string;
 }
 
 interface OperationalMetrics {
@@ -402,6 +404,7 @@ const FinancialDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("All Status");
   const { deductCommission } = useTransactions();
   const { commissionStats, commissions } = useCommissionStats();
+  const [setRevenue ] = useState<RevenueItem>();
   useEffect(() => {
     fetchFinanceData();
   }, [companyId]);
@@ -431,7 +434,7 @@ const calculateOperationalMetrics = () => {
     })
     .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   
-  const grossProfit = (monthlyRevenue + commissionStats?.this_month_amount) - monthlyExpenses;
+  const grossProfit = (Number(monthlyRevenue) + Number(commissionStats?.this_month_amount)) - Number(monthlyExpenses);
   const profitMargin = (monthlyRevenue + commissionStats?.this_month_amount) > 0 ? (grossProfit / (monthlyRevenue + commissionStats?.this_month_amount)) * 100 : 0;
   const operatingExpenseRatio = (monthlyRevenue + commissionStats?.this_month_amount) > 0 ? (monthlyExpenses / (monthlyRevenue + commissionStats?.this_month_amount)) * 100 : 0;
 
@@ -894,15 +897,59 @@ const calculateOperationalMetrics = () => {
 
   // Revenue Tab Component
   const RevenueTab = () => {
+
+    const [showRevenueModal, setShowRevenueModal] = useState(false);
+  const [selectedRevenue, setSelectedRevenue] = useState<RevenueItem | null>(null);
+  const [modalMode, setModalMode] = useState<'view' | 'edit' | 'create'>('create');
+
+  // Sample data structure - replace with your actual data
+  // const [revenue, setRevenue] = useState<RevenueItem[]>([
+    // Your revenue data here
+  // ]);
+
+  const handleViewRevenue = (rev: RevenueItem) => {
+    setSelectedRevenue(rev);
+    setModalMode('view');
+    setShowRevenueModal(true);
+  };
+
+  const handleEditRevenue = (rev: RevenueItem) => {
+    setSelectedRevenue(rev);
+    setModalMode('edit');
+    setShowRevenueModal(true);
+  };
+
+  const handleAddRevenue = () => {
+    setSelectedRevenue(null);
+    setModalMode('create');
+    setShowRevenueModal(true);
+  };
+
+  const handleSaveRevenue = (data: RevenueItem) => {
+    if (modalMode === 'create') {
+      // Add new revenue
+      setRevenue(prev => [...prev, { ...data, id: Date.now() }]);
+    } else if (modalMode === 'edit') {
+      // Update existing revenue
+      setRevenue(prev => prev.map(rev => rev.id === data.id ? data : rev));
+    }
+  };
+
+  const handleDeleteRevenue = (id: string | number) => {
+    setRevenue(prev => prev.filter(rev => rev.id !== id));
+  };
+
+  
     return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Revenue Management</h2>
           <p className="text-sm text-gray-600 mt-1">Track and analyze company revenue streams</p>
         </div>
         <button 
-          onClick={() => setShowRevenueModal(true)}
+          onClick={handleAddRevenue}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -1001,7 +1048,7 @@ const calculateOperationalMetrics = () => {
                     <p>{rev.description}</p>
                   </td>
                   <td >
-                   {rev.category}
+                   {rev.source}
                   </td>
                   <td>
                     {rev.amount}
@@ -1010,20 +1057,34 @@ const calculateOperationalMetrics = () => {
                     {formatDate(rev.payment_date)}
                   </td>
                   <td>
-                    {rev.amount}
+                    {rev.status}
                   </td>
                   <td>
-                     <div className="flex items-center space-x-2">
-                      <button className="p-1 hover:bg-gray-100 rounded">
-                        <Eye className="w-4 h-4 text-gray-500" />
-                      </button>
-                      <button className="p-1 hover:bg-gray-100 rounded">
-                        <Edit3 className="w-4 h-4 text-gray-500" />
-                      </button>
-                      <button className="p-1 hover:bg-gray-100 rounded">
-                        <Trash2 className="w-4 h-4 text-gray-500" />
-                      </button>
-                    </div>
+                     
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={() => handleViewRevenue(rev)}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <Eye className="w-4 h-4 text-gray-500" />
+                  </button>
+                  <button 
+                    onClick={() => handleEditRevenue(rev)}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <Edit3 className="w-4 h-4 text-gray-500" />
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm('Are you sure?')) {
+                        handleDeleteRevenue(rev.id);
+                      }
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <Trash2 className="w-4 h-4 text-gray-500" />
+                  </button>
+                </div>
                   </td>
                 </tr>
               ))}
@@ -1032,6 +1093,16 @@ const calculateOperationalMetrics = () => {
         </div>
       </div>
     </div>
+       {/* Add the modal at the end */}
+      <NewRevenueModal
+        isOpen={showRevenueModal}
+        onClose={() => setShowRevenueModal(false)}
+        revenue={selectedRevenue}
+        mode={modalMode}
+        onSave={handleSaveRevenue}
+        onDelete={handleDeleteRevenue}
+      />
+    </>
     )
 };
 
@@ -1918,7 +1989,7 @@ const AssetsTab = () => {
         loading={loading}
       />}
       {showRevenueModal && <RevenueModal
-        show={showRevenueModal}
+        show={shownueModal}
         onClose={() => setShowRevenueModal(false)}
         onSubmit={submitRevenue}
         formData={revenueFormData}

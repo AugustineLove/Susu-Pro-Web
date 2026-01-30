@@ -45,12 +45,13 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
   // Fetch both assets + expenses
   const fetchFinanceData = async () => {
         try {
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/financials/get-financials/${companyId}`);
+      const res = await fetch(`http://localhost:5000/api/financials/get-financials/${companyId}`);
       const json = await res.json();
       if (json.status === "success") {
         setData(json.data);
+        }
         console.log(`Finance data: ${JSON.stringify(data)}`)
-      }
+      
       } catch (err) {
       console.error("Failed to fetch financials:", err);
     }
@@ -112,7 +113,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
   const addPayment = async ( company_id: string, data: Omit<Payment, "id">) => {
     try {
       setLoading(true);
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/financials/entry`, { 
+      const res = await fetch(`http://localhost:5000/api/financials/entry`, { 
         method: "POST", 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
