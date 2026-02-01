@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { Commission, Transaction } from '../../data/mockData';
+import { Account, Commission, Customer, Transaction } from '../../data/mockData';
 import { useCustomers } from './Customers';
 import { useStats } from './DashboardStat';
-import { companyId } from '../../constants/appConstants';
+import { companyId, makeSuSuProName, parentCompanyName } from '../../constants/appConstants';
 import toast from 'react-hot-toast';
 import { useCommissionStats } from './Commissions';
+import { useAccounts } from './Account';
 
 export type TransactionType = {
   transaction_id: string;
@@ -54,7 +55,7 @@ type TransactionContextType = {
   deleteTransaction: (transactionId: string) => Promise<boolean>;
   fetchCustomerTransactions: (customerId: string) => Promise<void>;
   refreshTransactions: () => Promise<void>;
-  addTransaction: (newTransaction: Omit<Transaction, 'id' | 'created_at'>) => Promise<boolean>;
+  addTransaction: (newTransaction: Omit<Transaction, 'id' | 'created_at'>, account: Account, customer: Customer, amount: string) => Promise<boolean>;
   approveTransaction: (transactionId: string, messageData: Record<string, any>) => Promise<boolean>;
   rejectTransaction: (transactionId: string) => Promise<boolean>;
   reverseTransaction: (staffId: string,transactionId: string, reason: string) => Promise<any>;
@@ -141,6 +142,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [totals, setTotals] = useState<TransactionTotals>(calculateTotals([]));
 
   const { customers, refreshCustomers } = useCustomers();
+  const { accounts, refreshAccounts } = useAccounts();
   const { refreshStats } = useStats();
 
   const fetchTransactions = useCallback(async () => {
@@ -206,12 +208,12 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, []);
 
-  const addTransaction = useCallback(async (newTransaction: Omit<Transaction, 'id' | 'created_at'>): Promise<boolean> => {
+  const addTransaction = useCallback(async (newTransaction: Omit<Transaction, 'id' | 'created_at'>, account: Account, customer: Customer, amount: string): Promise<boolean> => {
     try {
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/stake`, {
+      const res = await fetch(`http://localhost:5000/api/transactions/stake`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -222,7 +224,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
-
+      console.log(`New transaction body: ${newTransaction}`);
       const json = await res.json();
 
       if (json.status === 'success') {
@@ -231,6 +233,22 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
           refreshCustomers(),
           refreshStats(),
         ]);
+        const updatedAccounts = await refreshAccounts(customer.customer_id);
+        const newAccountBalance = updatedAccounts.find(a => a.id === account.id)?.balance;
+        console.log(`New account balance: ${newAccountBalance}`)
+
+      
+      const messageData = {
+            messageTo: customer.phone_number,
+            message: `You have successfully credited your ${account?.account_type} account with GHS${amount}.00. Your new balance is GHS${newAccountBalance}`,
+            messageFrom: makeSuSuProName(parentCompanyName)
+        } as Record<string, any>;
+        
+        if (messageData && Object.keys(messageData).length > 0){
+          sendMessage(messageData).catch(err => 
+            console.warn(`Message sending failed but transaction was sent:`, err)
+          )
+        }
         return true;
       } else if (json.status === 'insufficient_balance') {
         setError('Insufficient balance for this transaction');

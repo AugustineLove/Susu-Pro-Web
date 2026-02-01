@@ -17,7 +17,7 @@ import {
 import { useCustomers } from "../../../contexts/dashboard/Customers";
 import { useStaff } from "../../../contexts/dashboard/Staff";
 import { useAccounts } from "../../../contexts/dashboard/Account";
-import { companyId, companyName, userRole, userUUID } from "../../../constants/appConstants";
+import { companyId, companyName, makeSuSuProName, parentCompanyName, userRole, userUUID } from "../../../constants/appConstants";
 import { useTransactions } from "../../../contexts/dashboard/Transactions";
 import toast from 'react-hot-toast';
 
@@ -76,7 +76,7 @@ interface TransactionModalProps {
 }
 
 const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onSave, onClose }) => {
-  const { customers, customerLoading: customersLoading, refreshCustomers } = useCustomers();
+  const { customers, customerLoading: customersLoading, refreshCustomers, fetchCustomerById } = useCustomers();
   const { staffList, loading: staffLoading } = useStaff();
   const { accounts, refreshAccounts, setAccounts } = useAccounts();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -248,8 +248,11 @@ const filteredCustomers = customers.filter(customer =>
       unique_code: '',
       status: status,
     };
+    console.log(`Selected customer data: ${JSON.stringify(selectedCustomer)}`)
+    
+    
     console.log('Submitting transaction:', transactionData);
-    const addBool = await addTransaction(transactionData);
+    const addBool = await addTransaction(transactionData, selectedAccount, selectedCustomer, formData.amount);
     if (addBool === true) {
       toast.success('Transaction successfully created', {id: toastId});
       onClose();

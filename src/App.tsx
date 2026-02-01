@@ -71,29 +71,33 @@ function App() {
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
+              
+                    <StaffProvider>
+                      
+                      <AccountsProvider>
               <StatsProvider>
                 <CustomersProvider>
+                <AccountNumberProvider>
+                <AccountNumberProviders>
                   <TransactionProvider>
-                    <StaffProvider>
-                      <AccountsProvider>
                         <FinanceProvider>
                           <LoansProvider>
                             <FloatActivityProvider>
-                              <AccountNumberProvider>
-                                <AccountNumberProviders>
                                   <CommissionStatsProvider>
                                     <DashboardLayout />
                                   </CommissionStatsProvider>
-                                </AccountNumberProviders>
-                              </AccountNumberProvider>
+                               
                             </FloatActivityProvider>
                           </LoansProvider>
                         </FinanceProvider>
-                      </AccountsProvider>
-                    </StaffProvider>
+                    
                   </TransactionProvider>
+                   </AccountNumberProviders>
+                </AccountNumberProvider>
                 </CustomersProvider>
               </StatsProvider>
+                      </AccountsProvider>
+              </StaffProvider>
             </ProtectedRoute>
           }>
             <Route index element={<Overview />} />

@@ -10,7 +10,7 @@ interface AccountsContextType {
   loading: boolean;
   loadingLoans: boolean;
   addAccount: (newAccount: Omit<Account, 'id' | 'created_at'>) => Promise<boolean>;
-  refreshAccounts: (customerId: string) => void;
+  refreshAccounts: (customerId: string) => any;
   fetchLoanAccounts: (companyId: string) => void;
   toggleAccountStatus: (accountId: string) => void;
   setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
@@ -89,9 +89,11 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         ? data.data
         : []
     );
+    
      setCustomerLoans(
           Array.isArray(data?.data.loans) ? data.data.loans : []
         )
+        return data.data;
     } catch (error) {
       console.error('Error fetching accounts:', error);
     } finally {

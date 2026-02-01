@@ -10,7 +10,7 @@ interface CustomersContextType {
   customer?: Customer;
   customerLoading: boolean;
   editCustomer: (updatedCustomer: Omit<Customer, 'id' | 'created_at'>) => Promise<void>;
-  fetchCustomerById: (customerId: string) => Promise<void>;
+  fetchCustomerById: (customerId: string) => Promise<Customer>;
   refreshCustomers: () => Promise<void>;
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
    addCustomer: (newCustomer: Omit<Customer, 'id' | 'created_at'>, account: string, account_number: string) => Promise<void>;
@@ -65,6 +65,8 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (res.ok){
         const data = await res.json();
         setCustomer(data.data);
+        console.log(`Customer data: ${data.data}`)
+        return data.data;
       }
     } catch(error){
       console.log(error);
