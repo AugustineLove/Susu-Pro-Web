@@ -42,7 +42,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return;
       }
 
-      const res = await fetch(`http://localhost:5000/api/customers/company/${companyId}`);
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/customers/company/${companyId}`);
 
       if (res.ok) {
         const data = await res.json();
@@ -61,7 +61,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const fetchCustomerById = async (customerId?: string) => {
     setCustomerloading(true);
     try{
-      const res = await fetch(`http://localhost:5000/api/customers/${customerId}`);
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/customers/${customerId}`);
       if (res.ok){
         const data = await res.json();
         setCustomer(data.data);
@@ -79,7 +79,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const addAccount = async(newAccount: Omit<Account, 'id' | 'created_at'>)=>{
     try {
       console.log('Adding account for customer');
-      const res = await fetch('http://localhost:5000/api/accounts/create', {
+      const res = await fetch('https://susu-pro-backend.onrender.com/api/accounts/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json'},
         body: JSON.stringify(newAccount),
@@ -100,7 +100,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   setCustomerloading(true);
   try {
     const toastId = 'Editing customer...'
-    const res = await fetch(`http://localhost:5000/api/customers/customer`, {
+    const res = await fetch(`https://susu-pro-backend.onrender.com/api/customers/customer`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -127,7 +127,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const token = localStorage.getItem('susupro_token');
     console.log('Company ID in addCustomer: ', companyId);
     try {
-      const res = await fetch(`http://localhost:5000/api/customers/create`, {
+      const res = await fetch(`https://susu-pro-backend.onrender.com/api/customers/create`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',  
@@ -163,7 +163,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deleteCustomer = async (customerId: string) => {
     try {
       console.log('Deleting customer: ', customerId);
-      const res = await fetch('http://localhost:5000/api/customers/delete', {
+      const res = await fetch('https://susu-pro-backend.onrender.com/api/customers/delete', {
         method: 'DELETE',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({

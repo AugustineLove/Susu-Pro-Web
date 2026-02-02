@@ -23,7 +23,7 @@ export const AccountNumberProviders: React.FC<{ children: React.ReactNode }> = (
   const fetchLastAccountNumbers = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/accounts/last-account-numbers`
+          `https://susu-pro-backend.onrender.com/api/accounts/last-account-numbers`
         );
         const json = await res.json();
         console.log(`Staff account numbers: ${JSON.stringify(json.data)}`);
@@ -39,7 +39,7 @@ export const AccountNumberProviders: React.FC<{ children: React.ReactNode }> = (
     const fetchLastAccountNumbers = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/accounts/last-account-numbers`
+          `https://susu-pro-backend.onrender.com/api/accounts/last-account-numbers`
         );
         const json = await res.json();
         console.log(`Staff account numbers: ${JSON.stringify(json.data)}`);
