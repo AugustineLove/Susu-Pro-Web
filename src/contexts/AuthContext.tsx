@@ -1,116 +1,161 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { companyJSON } from '../constants/appConstants';
-import { Company } from '../data/mockData';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import toast from "react-hot-toast";
+import { Company } from "../data/mockData";
 
+interface LoginResponse {
+  requires2FA?: boolean;
+  companyId?: string;
+  success: boolean;
+}
+
+interface SignUpResponse {
+  success: boolean;
+  message?: string;
+}
 
 interface AuthContextType {
   company: Company | null;
-  login: (email: string, password: string) => Promise<{ requires2FA?: boolean; companyId?: string; success: boolean }>;
-  signUp: (companyData: Omit<Company, 'id'>) => Promise<{ success: boolean; message?: string }>;
-  logout: () => void;
   isLoading: boolean;
+  login: (email: string, password: string) => Promise<LoginResponse>;
+  signUp: (companyData: Omit<Company, "id">) => Promise<SignUpResponse>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context;
+  return ctx;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  /* 🔁 Restore session */
   useEffect(() => {
-    if (companyJSON) {
-      setCompany(JSON.parse(companyJSON));
+    const storedCompany = localStorage.getItem("susupro_company");
+    if (storedCompany) {
+      setCompany(JSON.parse(storedCompany));
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ requires2FA?: boolean; companyId?: string; success: boolean }> => {
+  /* 🔐 LOGIN */
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<LoginResponse> => {
     setIsLoading(true);
-    const token = localStorage.getItem('susupro_token') || '';
+    const toastId = toast.loading("Signing in...");
+
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login-company', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-      console.log(`Login successful for company: ${JSON.stringify(data.data)}`);
-      if (response.ok) {
-        const companyData = data.data;
-        const token = data.token;
-        setCompany(companyData);
-        localStorage.setItem('susupro_company', JSON.stringify(companyData));
-        localStorage.setItem('susupro_token', token);
-
-        if (companyData.two_factor_enabled) {
-          // If 2FA is enabled, return the company data
-          return { requires2FA: true, companyId: companyData.id, success: true };
+      const res = await fetch(
+        "http://localhost:5000/api/auth/login-company",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
         }
-        console.log(`state of 2fa: ${companyData.two_factor_enabled}`);
+      );
 
-        return { success: true };
-      } else {
-        console.error('Login failed:', data.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Invalid email or password", {
+          id: toastId,
+        });
         return { success: false };
       }
-    } catch (error) {
-      console.error('Login error:', error);
+
+      const { token, data: companyData } = data;
+
+      setCompany(companyData);
+      localStorage.setItem("susupro_company", JSON.stringify(companyData));
+      localStorage.setItem("susupro_token", token);
+
+      toast.success("Login successful", { id: toastId });
+
+      if (companyData.two_factor_enabled) {
+        return {
+          requires2FA: true,
+          companyId: companyData.id,
+          success: true,
+        };
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error("Login error:", err);
+      toast.error("Unable to login. Please try again.", { id: toastId });
       return { success: false };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signUp = async (companyData: Omit<Company, 'id'>): Promise<{ success: boolean; message?: string }> => {
+  /* 🏢 SIGN UP */
+  const signUp = async (
+    companyData: Omit<Company, "id">
+  ): Promise<SignUpResponse> => {
     setIsLoading(true);
+    const toastId = toast.loading("Creating account...");
 
     try {
-      const response = await fetch('http://localhost:5000/api/companies/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(companyData)
-      });
+      const res = await fetch(
+        "http://localhost:5000/api/companies/create",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(companyData),
+        }
+      );
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (response.ok) {
-        // Handle successful signup
-        return { success: true, message: data };
-      } else {
-        console.error('Signup failed:', data.message);
+      if (!res.ok) {
+        toast.error(data.message || "Signup failed", { id: toastId });
         return { success: false, message: data.message };
       }
-    } catch (error) {
-      console.error('Signup error:', error);
-      return { success: false, message: 'An error occurred during signup.' };
+
+      toast.success("Account created successfully", { id: toastId });
+      return { success: true };
+    } catch (err) {
+      console.error("Signup error:", err);
+      toast.error("Something went wrong during signup", { id: toastId });
+      return {
+        success: false,
+        message: "Unexpected error occurred",
+      };
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
+  /* 🚪 LOGOUT */
   const logout = () => {
     setCompany(null);
-    localStorage.removeItem('susupro_company');
-    localStorage.removeItem('susupro_token');
+    localStorage.removeItem("susupro_company");
+    localStorage.removeItem("susupro_token");
+    toast.success("Logged out");
     window.location.reload();
-   };
+  };
 
   return (
-    <AuthContext.Provider value={{ company, login, signUp, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ company, isLoading, login, signUp, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
