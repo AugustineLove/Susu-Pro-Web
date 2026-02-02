@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     const token = localStorage.getItem('susupro_token') || '';
     try {
-      const response = await fetch('https://susu-pro-backend.onrender.com/api/auth/login-company', {
+      const response = await fetch('http://localhost:5000/api/auth/login-company', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://susu-pro-backend.onrender.com/api/companies/create', {
+      const response = await fetch('http://localhost:5000/api/companies/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -20,6 +20,7 @@ export type TransactionType = {
   account_type: string;
   status: string;
   account_id?: string;
+  customer_id?: string;
   unique_code: string;
   recorded_staff_name?: string;
   mobile_banker_name?: string;
@@ -51,12 +52,12 @@ type TransactionContextType = {
   loading: boolean;
   error: string | null;
   totals: TransactionTotals;
-  deductCommission: (newCommission: Commission) => Promise<boolean>;
+  deductCommission: (newCommission: Commission, messageData: TransactionType) => Promise<boolean>;
   deleteTransaction: (transactionId: string) => Promise<boolean>;
   fetchCustomerTransactions: (customerId: string) => Promise<void>;
   refreshTransactions: () => Promise<void>;
   addTransaction: (newTransaction: Omit<Transaction, 'id' | 'created_at'>, account: Account, customer: Customer, amount: string) => Promise<boolean>;
-  approveTransaction: (transactionId: string, messageData: Record<string, any>) => Promise<boolean>;
+  approveTransaction: (transactionId: string, messageData: Record<string, any>, customerId: string, accountId: string, customerPhone: string, amount: string, accountType: string, accountNumber: string) => Promise<boolean>;
   rejectTransaction: (transactionId: string) => Promise<boolean>;
   reverseTransaction: (staffId: string,transactionId: string, reason: string) => Promise<any>;
   transferBetweenAccounts:(payload: {
@@ -150,7 +151,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/all/${companyId}`);
+      const res = await fetch(`http://localhost:5000/api/transactions/all/${companyId}`);
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -185,7 +186,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/customer/${customerId}`);
+      const res = await fetch(`http://localhost:5000/api/transactions/customer/${customerId}`);
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -213,7 +214,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/stake`, {
+      const res = await fetch(`http://localhost:5000/api/transactions/stake`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -224,7 +225,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
-      console.log(`New transaction body: ${newTransaction}`);
+      console.log(`New transaction body: ${JSON.stringify(newTransaction)}`);
       const json = await res.json();
 
       if (json.status === 'success') {
@@ -244,10 +245,12 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
             messageFrom: makeSuSuProName(parentCompanyName)
         } as Record<string, any>;
         
-        if (messageData && Object.keys(messageData).length > 0){
+        if(newTransaction.transaction_type === 'deposit' || newTransaction.transaction_type === 'Deposit'){
+          if (messageData && Object.keys(messageData).length > 0){
           sendMessage(messageData).catch(err => 
             console.warn(`Message sending failed but transaction was sent:`, err)
           )
+        }
         }
         return true;
       } else if (json.status === 'insufficient_balance') {
@@ -267,7 +270,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [fetchTransactions, refreshCustomers, refreshStats]);
 
-  const deductCommission = useCallback(async (newCommission: Commission): Promise<boolean> => {
+  const deductCommission = useCallback(async (newCommission: Commission, messageData: TransactionType): Promise<boolean> => {
+    console.log(`Withdrawal plus commission body ${JSON.stringify(messageData)}`)
     const accountId = newCommission.account_id;
     console.log(`Commission data: ${JSON.stringify(newCommission)}`)
     
@@ -281,7 +285,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/commission/${accountId}`, {
+      const res = await fetch(`http://localhost:5000/api/transactions/commission/${accountId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -301,6 +305,25 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
           refreshCustomers(),
           refreshStats(),
         ]);
+
+         const updatedAccounts = await refreshAccounts(messageData.customer_id);
+        const newAccountBalance = updatedAccounts.find(a => a.id === accountId)?.balance;
+        console.log(`New account balance: ${newAccountBalance}`)
+
+      
+      const finalMessageData = {
+            messageTo: messageData.customer_phone,
+            message: `An amount of GHS${messageData.amount} has been debited from your ${messageData.account_number} ${messageData.account_type} account. Deducted commission is GHS${newCommission.amount}.00. Your new balance is GHS${newAccountBalance}`,
+            messageFrom: makeSuSuProName(parentCompanyName)
+        } as Record<string, any>;
+        
+        // Send message (don't block on failure)
+        if (finalMessageData && Object.keys(finalMessageData).length > 0) {
+          sendMessage(finalMessageData).catch(err => 
+            console.warn('Message sending failed but transaction was approved:', err)
+          );
+        }
+
         return true;
       } else {
         throw new Error(json.message || 'Failed to deduct commission');
@@ -326,7 +349,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`https://susu-pro-backend.onrender.com/api/transactions/${transactionId}`, {
+      const res = await fetch(`http://localhost:5000/api/transactions/${transactionId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ company_id: companyId }),
@@ -352,7 +375,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const sendMessage = useCallback(async (messageData: Record<string, any>): Promise<boolean> => {
     try {
-      const res = await fetch('https://susu-pro-backend.onrender.com/api/messages/send-customer', {
+      const res = await fetch('http://localhost:5000/api/messages/send-customer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -379,7 +402,13 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const approveTransaction = useCallback(async (
     transactionId: string,
-    messageData: Record<string, any>
+    messageData: Record<string, any>,
+    customerId: string,
+    accountId:string,
+    customerPhone: string,
+    amount: String,
+    accountType: string,
+    accountNumber: string
   ): Promise<boolean> => {
     if (!transactionId) {
       console.error('Transaction ID is required');
@@ -392,7 +421,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setError(null);
       
       const res = await fetch(
-        `https://susu-pro-backend.onrender.com/api/transactions/${transactionId}/approve`,
+        `http://localhost:5000/api/transactions/${transactionId}/approve`,
         {
           method: 'POST',
           headers: {
@@ -416,13 +445,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
           refreshCustomers(),
           refreshStats(),
         ]);
-        
-        // Send message (don't block on failure)
-        if (messageData && Object.keys(messageData).length > 0) {
-          sendMessage(messageData).catch(err => 
-            console.warn('Message sending failed but transaction was approved:', err)
-          );
-        }
+
+       
         
         return true;
       } else {
@@ -450,7 +474,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setError(null);
       
       const res = await fetch(
-        `https://susu-pro-backend.onrender.com/api/transactions/${transactionId}/reject`,
+        `http://localhost:5000/api/transactions/${transactionId}/reject`,
         {
           method: 'POST',
           headers: {
@@ -499,7 +523,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
     setLoading(true);
     const res = await fetch(
-      `https://susu-pro-backend.onrender.com/api/transactions/${transactionId}/reverse`,
+      `http://localhost:5000/api/transactions/${transactionId}/reverse`,
       {
         method: "POST",
         headers: {
@@ -548,7 +572,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const toastId = toast.loading(`Transferring ${payload.amount} cedis...`);
 
     const res = await fetch(
-      `https://susu-pro-backend.onrender.com/api/transactions/transfer-money`,
+      `http://localhost:5000/api/transactions/transfer-money`,
       {
         method: "POST",
         headers: {

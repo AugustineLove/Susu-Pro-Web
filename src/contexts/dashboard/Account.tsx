@@ -41,7 +41,7 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   try {
 
     const res = await fetch(
-      `https://susu-pro-backend.onrender.com/api/loans/all/${companyId}`
+      `http://localhost:5000/api/loans/all/${companyId}`
     );
 
     if (!res.ok) {
@@ -77,7 +77,7 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setLoading(true);
     console.log(`Fetching accounts for customer ID: ${customerId}`);
     try {
-        const res = await fetch(`https://susu-pro-backend.onrender.com/api/accounts/customer/${customerId}`);
+        const res = await fetch(`http://localhost:5000/api/accounts/customer/${customerId}`);
       if (!res.ok) {
         const errorText = await res.text();
         return;
@@ -104,7 +104,7 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const addAccount = async(newAccount: Omit<Account, 'id' | 'created_at'>)=>{
       try {
         console.log('Adding account for customer');
-        const res = await fetch('https://susu-pro-backend.onrender.com/api/accounts/create', {
+        const res = await fetch('http://localhost:5000/api/accounts/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json'},
           body: JSON.stringify(newAccount),
@@ -126,7 +126,7 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setLoading(true);
     const toastId = toast.loading(`Updating...`)
     const res = await fetch(
-      `https://susu-pro-backend.onrender.com/api/accounts/${accountId}/toggle-status`,
+      `http://localhost:5000/api/accounts/${accountId}/toggle-status`,
       {
         method: "PATCH",
         headers: {

@@ -500,9 +500,14 @@ const Clients: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-sm rounded-full bg-gray-100 text-gray-800">
+                      <div className='flex flex-col items-center justify-center'>
+                        <span className="inline-flex px-2 py-1 text-sm rounded-full bg-gray-100 text-gray-800">
                         {customer.location || 'Unknown'}
                       </span>
+                      <span className='text-sm'>
+                          {customer.gender}
+                      </span>
+                        </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(customer.date_of_registration).toLocaleDateString()}

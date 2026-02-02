@@ -162,8 +162,7 @@ const Overview: React.FC = () => {
       : 'bg-red-100 text-red-800';
   };
 
-  const totalCommission = totals?.totalCommissions || 0;
-
+  
   if (!userPermissions) window.location.reload();
 
   return (

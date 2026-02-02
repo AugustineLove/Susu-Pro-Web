@@ -38,6 +38,7 @@ import { useTransactions } from '../../contexts/dashboard/Transactions';
 import { useNavigate } from 'react-router-dom';
 import { useCommissionStats } from '../../contexts/dashboard/Commissions';
 import NewRevenueModal, { RevenueItem } from './Components/revenueModal';
+import { useBudget } from '../../contexts/dashboard/Budget';
 
 interface FinanceData{
   expenses: Expense[];
@@ -110,7 +111,7 @@ const RevenueModal: React.FC<ModalProps> = ({
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [selectedCustomerAccount, setSelectedCustomerAccount] = useState<Account | null>(null);
   const { deductCommission } = useTransactions();
-
+  const { toggleBudgetStatus } = useBudget();
   const { customers } = useCustomers();
   
 
@@ -125,7 +126,7 @@ const RevenueModal: React.FC<ModalProps> = ({
       try {
         setLoadingAccounts(true);
         const res = await fetch(
-          `https://susu-pro-backend.onrender.com/api/accounts/customer/${customerId}`
+          `http://localhost:5000/api/accounts/customer/${customerId}`
         );
         const data = await res.json();
         if (data.status === "success") {
@@ -413,6 +414,7 @@ const FinancialDashboard: React.FC = () => {
   const assets = data?.assets || [];
   const payments = data?.payments || [];
   const budgets = data?.budgets || [];
+  console.log(`Budget data: ${JSON.stringify(budgets)}`)
   const revenue = data?.revenue || [];
 
  // Calculate operational metrics
@@ -1367,6 +1369,7 @@ const CommissionTab = ({
       const totalSpent = budgets.reduce((sum, b) => Number(sum) + Number(b.spent), 0);
       const totalRemaining = totalAllocated - totalSpent;
       const navigate = useNavigate();
+      const { toggleBudgetStatus, fetchBudgets, loadingToggle } = useBudget();
       return (
         <div className="space-y-6">
           {/* Header */}
@@ -1443,53 +1446,119 @@ const CommissionTab = ({
                   const percentage = budget.allocated
                     ? Math.round((budget.spent / budget.allocated) * 100)
                     : 0;
+
                   const remaining = budget.allocated - budget.spent;
+                  const isInactive = budget.status === "Closed";
 
                   return (
                     <div
                       key={budget.id}
-                      onClick={() => navigate(`budgets/${budget.id}`, { state: { budget } })}
-                      className="border border-gray-100 rounded-lg p-4 hover:shadow-md cursor-pointer transition-shadow"
+                      onClick={() =>
+                        navigate(`budgets/${budget.id}`, { state: { budget } })
+                      }
+                      className={`relative border rounded-lg p-4 transition-all cursor-pointer
+                        ${isInactive ? "bg-gray-50 border-gray-200 opacity-80" : "border-gray-100 hover:shadow-md"}
+                      `}
                     >
+                      {/* 📅 Header */}
                       <div className="flex justify-between items-center mb-3">
                         <h4 className="font-medium text-gray-900">
                           {formatDate(budget.date)}
                         </h4>
                         <div className="text-right">
                           <p className="text-sm text-gray-600">
-                            ₵{budget.spent.toLocaleString()} / ₵
-                            {budget.allocated.toLocaleString()}
+                            ₵{budget.spent.toLocaleString()} / ₵{budget.allocated.toLocaleString()}
                           </p>
                           <p className="text-xs text-gray-500">{percentage}% used</p>
                         </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
+
+                      {/* 📊 Progress Bar */}
+                      <div className="w-full bg-gray-200 rounded-full h-3 mb-3 overflow-hidden">
                         <div
-                          className={`h-3 rounded-full transition-all duration-500 ${
-                            percentage > 80
+                          className={`h-3 rounded-full transition-all duration-500
+                            ${isInactive
+                              ? "bg-gray-400"
+                              : percentage > 80
                               ? "bg-red-500"
                               : percentage > 60
                               ? "bg-yellow-500"
                               : "bg-green-500"
-                          }`}
+                            }`}
                           style={{ width: `${Math.min(percentage, 100)}%` }}
-                        ></div>
+                        />
                       </div>
-                      <div className="flex justify-between text-xs text-gray-500">
+
+                      {/* 📈 Footer */}
+                      <div className="flex justify-between items-center text-xs text-gray-500">
                         <span>Remaining: ₵{remaining.toLocaleString()}</span>
                         <span>
-                          {remaining < 0
+                          {isInactive
+                            ? "Float closed"
+                            : remaining < 0
                             ? "Over budget"
                             : percentage > 80
                             ? "Approaching limit"
                             : "On track"}
                         </span>
                       </div>
+
+                      {/* 🔖 Status & Toggle */}
+                      <div className="flex justify-end items-center space-x-3 mt-4">
+                        {/* Status Badge */}
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full font-medium
+                            ${isInactive ? "bg-gray-200 text-gray-600" : "bg-green-100 text-green-700"}
+                          `}
+                        >
+                          {isInactive ? "Closed" : "Active"}
+                        </span>
+
+                        {/* Toggle Button */}
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (loadingToggle) return; // prevent multiple clicks
+                            await toggleBudgetStatus(budget.id);
+                          }}
+                          disabled={loadingToggle}
+                          className={`flex items-center justify-center text-xs px-3 py-1.5 rounded-md font-medium transition
+                            ${isInactive ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-red-100 text-red-600 hover:bg-red-200"}
+                            ${loadingToggle ? "opacity-70 cursor-not-allowed" : ""}
+                          `}
+                        >
+                          {loadingToggle ? (
+                            <svg
+                              className="w-4 h-4 animate-spin mr-1 text-gray-600"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8v8H4z"
+                              />
+                            </svg>
+                          ) : null}
+                          {loadingToggle ? "Processing..." : isInactive ? "Reopen Float" : "Close Float"}
+                        </button>
+                      </div>
                     </div>
                   );
                 })
               )}
             </div>
+
+
           </div>
         </div>
       );

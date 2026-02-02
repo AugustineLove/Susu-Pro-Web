@@ -42,7 +42,7 @@ const Withdrawals: React.FC = () => {
         'transaction_id': transactionId,
        }
        console.log('New commission data: ', newCommissionData) 
-       const res = await deductCommission(newCommissionData as Commission)
+       const res = await deductCommission(newCommissionData as Commission, commissionData)
        if(res){
           toast.success('Commission added successfully', {id: toastId})
           setShowCommissionModal(false)
@@ -86,7 +86,7 @@ const approvedWithdrawalsThisMonth = transactions.filter(w => {
   );
 });
 
-  const handleApproveClick = async (withdrawaId: string, customerPhone: string, customerName: string, withdrawalAmount: string) => {
+  const handleApproveClick = async (withdrawaId: string, customerPhone: string, customerName: string, withdrawalAmount: string, customerId: string, accountId: string, accountType: string, accountNumber: string) => {
     if (isApproving) return;
 
     setIsApproving(true);
@@ -97,7 +97,14 @@ const approvedWithdrawalsThisMonth = transactions.filter(w => {
     messageTo: customerPhone,
     message: `Hello ${customerName} you have withdrawn an amount of GHS${withdrawalAmount}`,
     messageFrom: makeSuSuProName(parentCompanyName),
-  });
+  },
+  customerId,
+  accountId,
+  customerPhone,
+  withdrawalAmount,
+  accountType,
+  accountNumber
+);
   console.log(`Approval success withdrawalId: ${withdrawaId} : ${approvalSuccess}`);
   setCommissionTransactionId(withdrawaId);
 
@@ -325,8 +332,8 @@ const approvedWithdrawalsThisMonth = transactions.filter(w => {
                       <div className="flex space-x-2">
                         <button
                           onClick={()=>{
-                            handleApproveClick(withdrawal.transaction_id, withdrawal.customer_phone, withdrawal.customer_name, withdrawal.amount.toLocaleString())
                             setCommissionData(withdrawal);
+                            handleApproveClick(withdrawal.transaction_id, withdrawal.customer_phone, withdrawal.customer_name, withdrawal.amount.toLocaleString(), withdrawal.customer_id, withdrawal.account_id, withdrawal.account_type, withdrawal.account_number)
                           }}
                           className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
                         >
