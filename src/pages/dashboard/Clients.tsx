@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Edit, Trash2, Eye, Filter, MoreVertical, Users, TrendingUp, Calendar, Download } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, Filter, MoreVertical, Users, TrendingUp, Calendar, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { mockClients, Client, Customer, Account } from '../../data/mockData';
 import { useStats } from '../../contexts/dashboard/DashboardStat';
 import { useCustomers } from '../../contexts/dashboard/Customers';
@@ -7,6 +7,7 @@ import { ClientModal } from './Components/clientModal';
 import { useNavigate } from 'react-router-dom';
 import DeleteCustomerModal from '../../components/deleteComfirmationModal';
 import { userPermissions } from '../../constants/appConstants';
+import EnhancedClientTable from './Components/enhancedCustomersTable';
 
 const Clients: React.FC = () => {
   const [clients, setClients] = useState<Customer[]>([]);
@@ -19,6 +20,7 @@ const Clients: React.FC = () => {
   const [editingClient, setEditingClient] = useState<Customer | null>(null);
   const { stats } = useStats();
   const { customers, customerLoading, addCustomer, editCustomer, refreshCustomers, deleteCustomer } = useCustomers();
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   
   const navigate = useNavigate();
 
@@ -42,7 +44,7 @@ const Clients: React.FC = () => {
 
   // Enhanced filtering logic
   const filteredClients = useMemo(() => {
-    return customers.filter(customer => {
+    let filtered = customers.filter(customer => {
       const name = customer.name?.toLowerCase() || '';
       const email = customer.email?.toLowerCase() || '';
       const phone = customer.phone_number || '';
@@ -91,8 +93,38 @@ const Clients: React.FC = () => {
 
       return matchesSearch && matchesLocation && matchesStaff && matchesStatus && matchesDateRange;
     });
-  }, [customers, searchTerm, locationFilter, staffFilter, statusFilter, dateRangeFilter]);
 
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue, bValue;
+        
+        switch(sortConfig.key) {
+          case 'name':
+            aValue = a.name.toLowerCase();
+            bValue = b.name.toLowerCase();
+            break;
+          case 'balance':
+            aValue = parseFloat(a.total_balance_across_all_accounts || 0);
+            bValue = parseFloat(b.total_balance_across_all_accounts || 0);
+            break;
+          case 'daily_rate':
+            aValue = parseFloat(a.daily_rate || 0);
+            bValue = parseFloat(b.daily_rate || 0);
+            break;
+          default:
+            return 0;
+        }
+        
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+
+  }, [customers, searchTerm, locationFilter, staffFilter, statusFilter, dateRangeFilter, sortConfig]);
+  
   // Enhanced statistics calculations
   const filteredStats = useMemo(() => {
     const totalCustomers = filteredClients.length;
@@ -216,6 +248,24 @@ const Clients: React.FC = () => {
   // Check if any filters are active
   const hasActiveFilters = searchTerm !== '' || locationFilter !== 'all' || staffFilter !== 'all' || statusFilter !== 'all' || dateRangeFilter !== 'all';
 
+   const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+  
+  // Get sort icon
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return <ArrowUpDown className="h-4 w-4 text-gray-400" />;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <ArrowUp className="h-4 w-4 text-indigo-600" />
+      : <ArrowDown className="h-4 w-4 text-indigo-600" />;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -327,6 +377,10 @@ const Clients: React.FC = () => {
       </div>
       )}
 
+      {/* {
+        <EnhancedClientTable/>
+      } */}
+
       {/* Enhanced Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="space-y-4">
@@ -419,31 +473,62 @@ const Clients: React.FC = () => {
         </div>
       </div>
 
+       {/* Results Count */}
+      <div className="flex items-center justify-between px-1">
+        <p className="text-sm text-gray-600">
+          Showing <span className="font-semibold text-gray-900">{filteredClients.length}</span> of{' '}
+          <span className="font-semibold text-gray-900">{customers.length}</span> clients
+        </p>
+        {sortConfig.key && (
+          <p className="text-xs text-gray-500">
+            Sorted by {sortConfig.key} ({sortConfig.direction === 'asc' ? 'ascending' : 'descending'})
+          </p>
+        )}
+      </div>
+
       {/* Clients Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client
+                <th 
+                  onClick={() => handleSort('name')}
+                  className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors group"
+                >
+                  <div className="flex items-center space-x-2">
+                    <span>Client</span>
+                    {getSortIcon('name')}
+                  </div>
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Contact
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Balance
+                <th 
+                  onClick={() => handleSort('balance')}
+                  className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors group"
+                >
+                  <div className="flex items-center space-x-2">
+                    <span>Balance</span>
+                    {getSortIcon('balance')}
+                  </div>
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Location
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Join Date
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Daily Rate
+                <th 
+                  onClick={() => handleSort('daily_rate')}
+                  className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors group"
+                >
+                  <div className="flex items-center space-x-2">
+                    <span>Daily Rate</span>
+                    {getSortIcon('daily_rate')}
+                  </div>
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
