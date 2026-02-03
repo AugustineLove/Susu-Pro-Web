@@ -290,14 +290,14 @@ const Overview: React.FC = () => {
               </Link>
             </div>
           </div>
-          <div className="p-6">
+          <div className="0">
             <div className="space-y-4">
               {recentTransactions.map((transaction) => (
               <div
                 key={transaction.transaction_id}
                 className="flex items-center justify-between bg-white rounded-xl p-4 transition-shadow duration-300"
               >
-               <div className="flex items-center justify-between bg-white rounded-xl p-4">
+               <div className="flex items-center justify-start bg-white rounded-xl p-4">
                   {/* Customer */}
                   <div className="flex items-center space-x-4 w-64 min-w-0">
                     <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -307,26 +307,26 @@ const Overview: React.FC = () => {
                         .join('')}
                     </div>
 
-                    <div className="min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">
-                        {transaction.customer_name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(transaction.transaction_date).toLocaleString(undefined, {
-                          dateStyle: 'medium',
-                          timeStyle: 'short',
-                        })}
-                      </p>
-                    </div>
+                      <div className='flex flex-col justify-start content-start'>
+                          <div className="min-w-0 w-44">
+                            <p className="font-semibold text-gray-900 truncate">
+                              {transaction.customer_name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(transaction.transaction_date).toLocaleString(undefined, {
+                                dateStyle: 'medium',
+                                timeStyle: 'short',
+                              })}
+                            </p>
+                          </div>
+                           {/* Staff */}
+                          <div className="flex sm:flex text-center text-xs text-gray-600 w-48">
+                            <p className="text-[10px] text-gray-400 mr-1">Processed by {" "}</p>
+                            <p className="font-medium truncate">{transaction.recorded_staff_name}</p>
+                          </div>
+                      </div>
                   </div>
-
-                  {/* Staff */}
-                  <div className="hidden sm:block text-center text-xs text-gray-600 w-40">
-                    <p className="text-[10px] text-gray-400">Processed by</p>
-                    <p className="font-medium truncate">{transaction.recorded_staff_name}</p>
-                  </div>
-
-                  {/* Status */}
+                  
                   <div className="hidden sm:block text-center text-xs text-gray-600 w-28">
                     <p className="text-[10px] text-gray-400">Status</p>
                     <p className={`font-medium p-1 rounded ${getStatusColor(transaction.status)}`}>
@@ -335,7 +335,7 @@ const Overview: React.FC = () => {
                   </div>
 
                   {/* Amount */}
-                  <div className="text-right w-32">
+                  <div className="text-center w-32">
                     <p className="text-gray-900 font-bold text-sm">
                       ¢{Number(transaction.amount).toLocaleString()}
                     </p>
