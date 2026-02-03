@@ -297,50 +297,58 @@ const Overview: React.FC = () => {
                 key={transaction.transaction_id}
                 className="flex items-center justify-between bg-white rounded-xl p-4 transition-shadow duration-300"
               >
-                {/* Customer Initials & Info */}
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-semibold text-sm">
+               <div className="flex items-center justify-between bg-white rounded-xl p-4">
+                  {/* Customer */}
+                  <div className="flex items-center space-x-4 w-64 min-w-0">
+                    <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
                       {transaction.customer_name
                         .split(' ')
                         .map((n) => n[0])
-                              .join('')}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">{transaction.customer_name}</p>
-                            <p className="text-xs text-gray-500">
-                              {new Date(transaction.transaction_date).toLocaleString(undefined, {
-                                dateStyle: 'medium',
-                                timeStyle: 'short',
-                              })}
-                            </p>
-                          </div>
-                        </div>
-
-                    {/* Staff Name */}
-                    <div className="hidden sm:block text-center text-xs text-gray-600">
-                      <p className="text-[10px] text-gray-400">Processed by</p>
-                      <p className="font-medium">{transaction.recorded_staff_name}</p>
-                      
-                    </div>
-                    {/* Staff Name */}
-                    <div className="hidden sm:block text-center text-xs text-gray-600 ">
-                      <p className="text-[10px] text-gray-400">Status</p>
-                      <p className={`font-medium p-1 rounded-5 ${getStatusColor(transaction.status)}`}>{transaction.status}</p>   
+                        .join('')}
                     </div>
 
-                    {/* Amount & Type */}
-                    <div className="text-right">
-                      <p className="text-gray-900 font-bold text-sm">¢{Number(transaction.amount).toLocaleString()}</p>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${
-                          transaction.type === 'deposit'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}
-                      >
-                        {transaction.type}
-                      </span>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">
+                        {transaction.customer_name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(transaction.transaction_date).toLocaleString(undefined, {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        })}
+                      </p>
                     </div>
+                  </div>
+
+                  {/* Staff */}
+                  <div className="hidden sm:block text-center text-xs text-gray-600 w-40">
+                    <p className="text-[10px] text-gray-400">Processed by</p>
+                    <p className="font-medium truncate">{transaction.recorded_staff_name}</p>
+                  </div>
+
+                  {/* Status */}
+                  <div className="hidden sm:block text-center text-xs text-gray-600 w-28">
+                    <p className="text-[10px] text-gray-400">Status</p>
+                    <p className={`font-medium p-1 rounded ${getStatusColor(transaction.status)}`}>
+                      {transaction.status}
+                    </p>
+                  </div>
+
+                  {/* Amount */}
+                  <div className="text-right w-32">
+                    <p className="text-gray-900 font-bold text-sm">
+                      ¢{Number(transaction.amount).toLocaleString()}
+                    </p>
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${
+                      transaction.type === 'deposit'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {transaction.type}
+                    </span>
+                  </div>
+                </div>
+
                   </div>
                 ))}
 
