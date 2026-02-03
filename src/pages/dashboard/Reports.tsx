@@ -66,7 +66,7 @@ const Reports = () => {
     { status: 'Approved', count: transactions.filter(t => t.status === 'approved').length, color: 'green' as StatusColor },
     { status: 'Completed', count: transactions.filter(t => t.status === 'completed').length, color: 'green' as StatusColor },
     { status: 'Pending', count: transactions.filter(t => t.status === 'pending').length, color: 'yellow' as StatusColor },
-    { status: 'Rejected', count: transactions.filter(t => t.status === 'rejected').length, color: 'red' as StatusColor },
+    { status: 'Reversed', count: transactions.filter(t => t.status === 'reversed').length, color: 'red' as StatusColor },
   ];
 
   // Filter transactions by date range
