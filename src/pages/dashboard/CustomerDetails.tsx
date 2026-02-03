@@ -125,6 +125,7 @@ const { transferBetweenAccounts } = useTransactions();
     withdrawal_code: customer?.withdrawal_code,
     status: 'Active',
     profileImage: null,
+    dailyRate: customer?.daily_rate,
     totalBalance: accounts.reduce((sum, acc) => Number(sum) + Number(acc.balance), 0),
     monthlyContribution: customerTransactions
       .filter(txn => {

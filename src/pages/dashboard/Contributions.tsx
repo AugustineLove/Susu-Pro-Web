@@ -32,59 +32,71 @@ const Contributions: React.FC = () => {
   const { staffList } = useStaff();
   const { refreshCustomers } = useCustomers();
 
-  // Enhanced filtering with staff and custom date range
   const filteredContributions = useMemo(() => {
-    return transactions.filter(contribution => {
-      // Search filter
-      const matchesSearch = contribution.customer_name.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Status filter
-      const matchesStatus = statusFilter === 'all' || contribution.status === statusFilter;
-      
-      // Staff filter
-      const matchesStaff = staffFilter === 'all' || contribution.mobile_banker_id === staffFilter;
-      
-      // Transaction type filter
-      const matchesType = transactionTypeFilter === 'all' || contribution.type === transactionTypeFilter;
-      
-      // Office staff filter
-      const matchesOfficeStaff = officeStaffFilter === 'all' || contribution.recorded_staff_id === officeStaffFilter;
+  return transactions.filter(contribution => {
+    // Search filter
+    const matchesSearch = contribution.customer_name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Status filter
+    const matchesStatus = statusFilter === 'all' || contribution.status === statusFilter;
+    
+    // Staff filter
+    const matchesStaff = staffFilter === 'all' || contribution.mobile_banker_id === staffFilter;
+    
+    // Transaction type filter
+    const matchesType = transactionTypeFilter === 'all' || contribution.type === transactionTypeFilter;
+    
+    // Office staff filter
+    const matchesOfficeStaff = officeStaffFilter === 'all' || contribution.recorded_staff_id === officeStaffFilter;
 
-      // Date range filter
-      let matchesDate = true;
+    // Date range filter
+    let matchesDate = true;
+    
+    if (dateRange !== 'all') {
+      // Parse contribution date and strip time (set to midnight)
       const contributionDate = new Date(contribution.transaction_date);
-      const now = new Date();
+      contributionDate.setHours(0, 0, 0, 0);
       
       if (dateRange === 'custom' && (startDate || endDate)) {
+        // Custom range: include both start and end dates fully
         const start = startDate ? new Date(startDate) : new Date('1900-01-01');
+        start.setHours(0, 0, 0, 0);
+        
         const end = endDate ? new Date(endDate) : new Date();
+        end.setHours(23, 59, 59, 999); // End of the day
+        
         matchesDate = contributionDate >= start && contributionDate <= end;
-      } else if (dateRange !== 'all') {
-        const daysDiff = (now.getTime() - contributionDate.getTime()) / (1000 * 3600 * 24);
+      } else {
+        // Preset ranges: compare dates properly
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        
+        const diffTime = now.getTime() - contributionDate.getTime();
+        const daysDiff = Math.floor(diffTime / (1000 * 3600 * 24));
         
         switch (dateRange) {
           case 'today':
-            matchesDate = daysDiff < 1;
+            matchesDate = daysDiff === 0;
             break;
           case 'week':
-            matchesDate = daysDiff < 7;
+            matchesDate = daysDiff >= 0 && daysDiff < 7;
             break;
           case 'month':
-            matchesDate = daysDiff < 30;
+            matchesDate = daysDiff >= 0 && daysDiff < 30;
             break;
           case 'quarter':
-            matchesDate = daysDiff < 90;
+            matchesDate = daysDiff >= 0 && daysDiff < 90;
             break;
           case 'year':
-            matchesDate = daysDiff < 365;
+            matchesDate = daysDiff >= 0 && daysDiff < 365;
             break;
         }
       }
-      
-      return matchesSearch && matchesStatus && matchesStaff && matchesDate && matchesType && matchesOfficeStaff;
-    });
-  }, [transactions, searchTerm, statusFilter, staffFilter, transactionTypeFilter, officeStaffFilter, dateRange, startDate, endDate]);
-
+    }
+    
+    return matchesSearch && matchesStatus && matchesStaff && matchesDate && matchesType && matchesOfficeStaff;
+  });
+}, [transactions, searchTerm, statusFilter, staffFilter, transactionTypeFilter, officeStaffFilter, dateRange, startDate, endDate]);
   // Calculate filtered stats
   const filteredStats = useMemo(() => {
     const completedTransactions = filteredContributions.filter(c => c.status === 'completed');
