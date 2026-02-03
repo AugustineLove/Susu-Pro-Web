@@ -103,6 +103,7 @@ const { transferBetweenAccounts } = useTransactions();
 
   console.log(`Customer data: ${JSON.stringify(customer)}`);
   // Mock customer data - replace with your actual data fetching
+  const now = new Date();
   const customerData = {
     id: customer?.account_number,
     fullName: customer?.name,
@@ -126,18 +127,19 @@ const { transferBetweenAccounts } = useTransactions();
     profileImage: null,
     totalBalance: accounts.reduce((sum, acc) => Number(sum) + Number(acc.balance), 0),
     monthlyContribution: customerTransactions
-  .filter(txn => {
-    if (!txn.transaction_date) return false;
-    const txnDate = new Date(txn.transaction_date);
-    const now = new Date();
-    return (
-      txnDate.getMonth() === now.getMonth() &&
-      txnDate.getFullYear() === now.getFullYear()
-    );
-  })
-  .reduce((sum, txn) => Number(sum) + Number(txn.amount), 0),
-    dailyRate: customer?.daily_rate || 'N/A',
-  };
+      .filter(txn => {
+        if (!txn.transaction_date) return false;
+        if (txn.status === 'reversed') return false;
+
+        const txnDate = new Date(txn.transaction_date);
+
+        return (
+          txnDate.getMonth() === now.getMonth() &&
+          txnDate.getFullYear() === now.getFullYear()
+        );
+      })
+      .reduce((sum, txn) => sum + Number(txn.amount), 0),
+      }
 
 
     const toCustomer = (dto: CustomerDTO): Customer => ({
@@ -894,32 +896,90 @@ const { transferBetweenAccounts } = useTransactions();
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.map((transaction) => (
-                    <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="py-3 px-4 text-sm text-gray-900">{formatDate(transaction.transaction_date)}</td>
-                      <td className="py-3 px-4 text-sm text-gray-600">{transaction.account_type}</td>
+                  {filteredTransactions.map((transaction) => {
+                  const isReversed = transaction.status === 'reversed';
+
+                  return (
+                    <tr
+                      key={transaction.id}
+                      className={`
+                        border-b border-gray-100 transition-colors
+                        ${isReversed
+                          ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                          : 'hover:bg-gray-50'}
+                      `}
+                    >
+                      {/* Date */}
+                      <td className="py-3 px-4 text-sm">
+                        <span className={isReversed ? 'line-through' : 'text-gray-900'}>
+                          {formatDate(transaction.transaction_date)}
+                        </span>
+                      </td>
+
+                      {/* Account Type */}
+                      <td className="py-3 px-4 text-sm">
+                        <span className={isReversed ? 'text-gray-400' : 'text-gray-600'}>
+                          {transaction.account_type}
+                        </span>
+                      </td>
+
+                      {/* Transaction Type */}
                       <td className="py-3 px-4">
-                        <span className="capitalize text-sm text-gray-600">{transaction.type}</span>
+                        <span
+                          className={`capitalize text-sm ${
+                            isReversed ? 'text-gray-400' : 'text-gray-600'
+                          }`}
+                        >
+                          {transaction.type}
+                        </span>
                       </td>
-                      <td className={`py-3 px-4 text-right font-medium ${
-                        transaction.type === 'deposit' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {transaction.type === 'deposit' ? '+' : '-'}{formatCurrency(transaction.amount)}
+
+                      {/* Amount */}
+                      <td
+                        className={`py-3 px-4 text-right font-medium ${
+                          isReversed
+                            ? 'text-gray-400'
+                            : transaction.type === 'deposit'
+                              ? 'text-green-600'
+                              : 'text-red-600'
+                        }`}
+                      >
+                        {transaction.type === 'deposit' ? '+' : '-'}
+                        {formatCurrency(transaction.amount)}
                       </td>
+
+                      {/* Status */}
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center space-x-1">
                           {getStatusIcon(transaction.status)}
-                          <span className="text-xs capitalize">{transaction.status}</span>
+                          <span
+                            className={`text-xs capitalize font-medium ${
+                              isReversed ? 'text-gray-500' : 'text-gray-700'
+                            }`}
+                          >
+                            {transaction.status}
+                          </span>
                         </div>
                       </td>
-                       <td className="py-3 px-4">
+
+                      {/* Description */}
+                      <td className="py-3 px-4">
                         <div className="flex items-center space-x-2">
                           {getTransactionIcon(transaction.type)}
-                          <span className="text-sm font-medium text-gray-900">{transaction.description || '-'}</span>
+                          <span
+                            className={`text-sm font-medium ${
+                              isReversed ? 'italic text-gray-400' : 'text-gray-900'
+                            }`}
+                          >
+                            {transaction.description || '-'}
+                            {isReversed && ' (Reversed)'}
+                          </span>
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  );
+                })}
+
                 </tbody>
               </table>
             </div>
