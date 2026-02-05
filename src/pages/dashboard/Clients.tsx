@@ -127,7 +127,7 @@ const Clients: React.FC = () => {
   
   // Enhanced statistics calculations
   const filteredStats = useMemo(() => {
-    const totalCustomers = filteredClients.length;
+    const totalCustomers = customers.length;
     const maleCount = filteredClients.filter(c => c.gender?.toLowerCase() === 'male').length;
     const femaleCount = filteredClients.filter(c => c.gender?.toLowerCase() === 'female').length;
     
@@ -140,12 +140,13 @@ const Clients: React.FC = () => {
         sum + (parseFloat(customer.daily_rate) || 0), 0
       ) / totalCustomers : 0;
 
-    const activeCustomersCount = filteredClients.filter(customer => {
-      // Consider a customer active if they've registered in the last 90 days
-      const registrationDate = new Date(customer.date_of_registration);
-      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-      return registrationDate >= ninetyDaysAgo;
-    }).length;
+    const activeCustomersCount = filteredClients.filter(customer =>
+    customer?.status === 'active' || customer?.status === 'Active'
+    ).length;
+
+    const inactiveCustomerCount = filteredClients.filter(customer => 
+      customer?.status === 'inactive' || customer?.status === 'Inactive'
+    ).length;
 
     return {
       totalCustomers,
@@ -153,7 +154,8 @@ const Clients: React.FC = () => {
       femaleCount,
       totalBalance,
       avgDailyRate,
-      activeCustomersCount
+      activeCustomersCount,
+      inactiveCustomerCount
     };
   }, [filteredClients]);
 
@@ -308,9 +310,14 @@ const Clients: React.FC = () => {
             <div>
               <p className="text-sm text-gray-600">Total Clients</p>
               <p className="text-2xl font-bold text-gray-900">{filteredStats.totalCustomers}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Active: {filteredStats.activeCustomersCount}
-              </p>
+              <div className='flex'>
+                   <p className="text-xs text-gray-500 mt-1 mr-3">
+                    Active: {filteredStats.activeCustomersCount}
+                  </p>
+                  <p className='text-xs text-gray-500 mt-1'>
+                    Inactive: {filteredStats.inactiveCustomerCount}
+                  </p>
+              </div>
             </div>
             <div className="bg-indigo-100 p-3 rounded-lg">
               <Users className="h-6 w-6 text-indigo-600" />

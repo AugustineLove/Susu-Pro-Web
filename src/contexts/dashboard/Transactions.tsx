@@ -102,7 +102,6 @@ const calculateTotals = (transactions: TransactionType[]): TransactionTotals => 
     const status = tx.status?.toLowerCase() || '';
     const type = tx.type?.toLowerCase() || '';
 
-    // Total by type
     if (type === 'deposit' && status !== 'reversed') {
       totals.totalDeposits += amount;
       

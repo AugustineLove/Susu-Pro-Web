@@ -297,9 +297,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
         break;
 
       case 'savings':
-        if (!formData.initial_deposit || formData.initial_deposit < 0) {
-          newErrors.initial_deposit = 'Initial deposit must be 0 or greater';
-        }
+        // if (!formData.initial_deposit || formData.initial_deposit < 0) {
+        //   newErrors.initial_deposit = 'Initial deposit must be 0 or greater';
+        // }
         if (!formData.minimumBalance || formData.minimumBalance < 0) {
           newErrors.minimumBalance = 'Minimum balance must be 0 or greater';
         }
@@ -347,7 +347,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-full w-full max-h-full overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl max-w-full w-[50%] max-h-full overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center">
@@ -467,9 +467,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Initial Deposit (¢) *
+                      Initial Deposit (¢)
                     </label>
                     <input
                       type="number"
@@ -483,7 +483,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
                       }`}
                       disabled={isLoading}
                     />
-                    </div>
+                    </div> */}
                   </div>
               </div>
             )}
@@ -496,9 +496,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
                 </h4>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Initial Deposit (¢) *
+                      Initial Deposit (¢)
                     </label>
                     <input
                       type="number"
@@ -513,7 +513,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
                       disabled={isLoading}
                     />
                     {errors.initial_deposit && <p className="text-red-600 text-sm mt-1">{errors.initial_deposit}</p>}
-                  </div>
+                  </div> */}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -535,7 +535,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
                   </div>
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Interest Rate (% per year)
                   </label>
@@ -553,7 +553,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
                     disabled={isLoading}
                   />
                   {errors.interestRate && <p className="text-red-600 text-sm mt-1">{errors.interestRate}</p>}
-                </div>
+                </div> */}
               </div>
             )}
 
