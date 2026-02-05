@@ -104,7 +104,7 @@ export const AccountsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const addAccount = async(newAccount: Omit<Account, 'id' | 'created_at'>)=>{
       try {
         console.log(`Adding account for customer ${JSON.stringify(newAccount)}`);
-        const res = await fetch('http://localhost:5000/api/accounts/create', {
+        const res = await fetch('https://susu-pro-backend.onrender.com/api/accounts/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json'},
           body: JSON.stringify(newAccount),
