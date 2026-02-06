@@ -86,6 +86,7 @@ export interface Customer {
   email: string;
   phone_number: string;
   account_number?: string;
+  is_deleted?: boolean;
   momo_number?: string;
   address: string;
   registered_by_name?: string;
@@ -107,6 +108,7 @@ export interface Customer {
   customer_id?: string;
   withdrawal_code?: string;
   status?: string;
+
 }
 // types/commission.ts
 export interface Commission {
